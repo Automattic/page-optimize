@@ -1,4 +1,7 @@
 <?php
+
+error_log( '$$$$$ ' . $_SERVER['REQUEST_URI'] );
+
 require_once( __DIR__ . '/utils.php' );
 
 if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) )
@@ -31,18 +34,18 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 		if ( ! empty( $before_output ) ) {
 			return true;
 		}
-	
+
 		$after_output = $this->get_data( $handle, 'after' );
 		if ( ! empty( $after_output ) ) {
 			return true;
 		}
-	
+
 		// JavaScript translations
 		$has_translations = ! empty( $this->registered[ $handle ]->textdomain );
 		if ( $has_translations ) {
 			return true;
 		}
-	
+
 		return false;
 	}
 
@@ -54,7 +57,11 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 		$this->all_deps( $handles );
 		$level = 0;
 
+		$total_count = count( $this->to_do );
+		error_log( "##### Group $group: Total scripts: $total_count for {$_SERVER['REQUEST_URI']}" );
+		$using_strict = false;
 		foreach( $this->to_do as $key => $handle ) {
+			$script_is_strict = false;
 			if ( in_array( $handle, $this->done ) || !isset( $this->registered[$handle] ) )
 				continue;
 
@@ -76,6 +83,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 
 			$obj = $this->registered[$handle];
 			$js_url = $obj->src;
+			error_log( "JS URL: $js_url" );
 			$js_url_parsed = parse_url( $js_url );
 			$extra = $obj->extra;
 
@@ -91,6 +99,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 				}
 			}
 
+			// TODO: Maybe this should be configurable
 			// Don't try to concat externally hosted scripts
 			$is_internal_url = Http_Concat_Utils::is_internal_url( $js_url, $siteurl );
 			if ( $do_concat && ! $is_internal_url ) {
@@ -117,6 +126,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 					echo sprintf( "\n<!-- No Concat JS %s => Has Inline Content -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
+				error_log( '!! INLINE SCRIPT' );
 			}
 
 			// Skip core scripts that use Strict Mode
@@ -125,14 +135,16 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 					echo sprintf( "\n<!-- No Concat JS %s => Has Strict Mode (Core) -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
-			}
-
-			// Skip third-party scripts that use Strict Mode
-			if ( $do_concat && preg_match_all( '/^[\',"]use strict[\',"];/Uims', file_get_contents( $js_realpath ), $matches ) ) {
+				$script_is_strict = true;
+			} else if ( $do_concat && preg_match_all( '/^[\',"]use strict[\',"];/Uims', file_get_contents( $js_realpath ), $matches ) ) {
+				// Skip third-party scripts that use Strict Mode
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Has Strict Mode (Third-Party) -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
+				$script_is_strict = true;
+			} else {
+				$script_is_strict = false;
 			}
 
 			// Allow plugins to disable concatenation of certain scripts.
@@ -157,6 +169,21 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 				$level++;
 			}
 			unset( $this->to_do[$key] );
+
+			if ( $using_strict !== $script_is_strict ) {
+				if ( $script_is_strict ) {
+					error_log( '>>>>>> MOVING TO STRICT' );
+					$using_strict = true;
+					$strict_count = 0;
+				} else {
+					$using_strict = false;
+					error_log( ">>>>>> END OF STRICT after $strict_count continuous strict scripts" );
+				}
+			}
+
+			if ( $script_is_strict ) {
+				$strict_count++;
+			}
 		}
 
 		if ( empty( $javascripts ) )

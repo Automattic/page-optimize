@@ -13,6 +13,7 @@ Author URI: http://automattic.com/
 // TODO: Confirm JS type should still be application/x-javascript. I believe we may have changed it recently.
 // TODO: Copy tests from nginx-http-concat and/or write them
 // TODO: hoverintent.min.js isn't processed properly
+// TODO: Does WP have any way that JS modules are recognized when registered? We can't just concat JS modules.
 
 // TODO: Make concat URL dir configurable
 // phpcs:disable WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.ValidatedSanitizedInput, WordPress.VIP.FileSystemWritesDisallow, WordPress.VIP.RestrictedFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents, WordPress.WP.AlternativeFunctions.json_encode_json_encode
