@@ -147,6 +147,11 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 				$script_is_strict = false;
 			}
 
+			// Don't concat jquery
+			if ( $do_concat && false !== strpos( $handle, 'jquery' ) ) {
+				$do_concat = false;
+			}
+
 			// Allow plugins to disable concatenation of certain scripts.
 			if ( $do_concat && ! apply_filters( 'js_do_concat', $do_concat, $handle ) ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
