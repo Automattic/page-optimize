@@ -232,13 +232,36 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 						echo $inline_before;
 					}
 				}
+
 				if ( isset( $href ) ) {
+					$handles = implode( ',', $js_array['handles'] );
+
+					$load_mode = "defer";
+
+					// Stuff to skip loading JS async/defer
+					if ( is_admin() ) {
+						$load_mode = '';
+					}
+					if ( false !== strpos( $handles, 'jquery' ) ) {
+						$load_mode = '';
+					}
+					if ( false !== strpos( $handles, 'a8c_' ) ) {
+						$load_mode = '';
+					}
+					if ( false !== strpos( $handles, 'backbone' ) ) {
+						$load_mode = '';
+					}
+					if ( false !== strpos( $handles, 'underscore' ) ) {
+						$load_mode = '';
+					}
+
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						echo "<script data-handles='" . esc_attr( implode( ',', $js_array['handles'] ) ) . "' type='text/javascript' src='$href'></script>\n";
+						echo "<script data-handles='" . esc_attr( $handles ) . "' $load_mode type='text/javascript' src='$href'></script>\n";
 					} else {
-						echo "<script type='text/javascript' src='$href'></script>\n";
+						echo "<script type='text/javascript' $load_mode src='$href'></script>\n";
 					}
 				}
+
 				if ( isset( $js_array['extras']['after'] ) ) {
 					foreach ( $js_array['extras']['after'] as $inline_after ) {
 						echo $inline_after;
