@@ -74,3 +74,6 @@ function page_optimize_sanitize_js_load_mode( $value ) {
 require_once __DIR__ . '/settings.php';
 require_once __DIR__ . '/concat-css.php';
 require_once __DIR__ . '/concat-js.php';
+
+// Disable Jetpack photon-cdn for static JS/CSS
+add_filter( 'jetpack_force_disable_site_accelerator', '__return_true' );

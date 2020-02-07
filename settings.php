@@ -24,6 +24,11 @@ function page_optimize_settings_section() {
 		'Concat JavaScript and CSS for faster site loading and lower number of requests. Scripts are grouped by the original placement.',
 		page_optimize_get_text_domain()
 	);
+	echo '<br />';
+	_e(
+		'This plugin disables Jetpack "Speed up static file load times".',
+		page_optimize_get_text_domain()
+	);
 }
 
 function page_optimize_settings_field_js( $args ) {
@@ -33,10 +38,10 @@ function page_optimize_settings_field_js( $args ) {
 			<input type="checkbox" id="page_optimize-js" name="page_optimize-js" value="1" <?php checked( get_option( 'page_optimize-js' ) ); ?>>
 			<?php _e( 'Concatenate scripts', page_optimize_get_text_domain() ); ?>
 		</label>
-		<br/>
+		<br />
 		<label>
 			<?php _e( 'Comma separated list of strings to exclude from concating:', page_optimize_get_text_domain() ); ?>
-			<br/>
+			<br />
 			<input type="input" id="page_optimize-js-exclude" name="page_optimize-js-exclude" value="<?php echo esc_html( get_option( 'page_optimize-js-exclude' ) ); ?>">
 		</label>
 	</div>
