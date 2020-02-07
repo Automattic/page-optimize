@@ -121,7 +121,7 @@ function page_optimize_settings_init() {
 					return '';
 				}
 
-				$excluded_strings = explode( ',', $value );
+				$excluded_strings = explode( ',', sanitize_text_field( $value ) );
 				$sanitized_values = [];
 				foreach ( $excluded_strings as $excluded_string ) {
 					if ( ! empty( $excluded_string ) ) {
@@ -129,7 +129,7 @@ function page_optimize_settings_init() {
 					}
 				}
 
-				return sanitize_text_field( implode( ',', $sanitized_values ) );
+				return implode( ',', $sanitized_values );
 			}
 		)
 	);
