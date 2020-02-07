@@ -6,8 +6,7 @@ class Http_Concat_Utils {
 		$test_url_parsed = parse_url( $test_url );
 		$site_url_parsed = parse_url( $site_url );
 
-		if ( isset( $test_url_parsed['host'] )
-			&& $test_url_parsed['host'] !== $site_url_parsed['host'] ) {
+		if ( isset( $test_url_parsed['host'] ) && $test_url_parsed['host'] !== $site_url_parsed['host'] ) {
 			return false;
 		}
 
