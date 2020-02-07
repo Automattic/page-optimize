@@ -222,4 +222,6 @@ function css_concat_init() {
 	$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-add_action( 'init', 'css_concat_init' );
+if ( http_concat_should_concat_css() ) {
+	add_action( 'init', 'css_concat_init' );
+}

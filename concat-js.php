@@ -1,7 +1,5 @@
 <?php
 
-error_log( '$$$$$ ' . $_SERVER['REQUEST_URI'] );
-
 require_once( __DIR__ . '/utils.php' );
 
 if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) )
@@ -58,7 +56,6 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 		$level = 0;
 
 		$total_count = count( $this->to_do );
-		error_log( "##### Group $group: Total scripts: $total_count for {$_SERVER['REQUEST_URI']}" );
 		$using_strict = false;
 		foreach( $this->to_do as $key => $handle ) {
 			$script_is_strict = false;
@@ -83,7 +80,6 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 
 			$obj = $this->registered[$handle];
 			$js_url = $obj->src;
-			error_log( "JS URL: $js_url" );
 			$js_url_parsed = parse_url( $js_url );
 			$extra = $obj->extra;
 
@@ -92,7 +88,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 
 			// Only try to concat static js files
 			if ( false !== strpos( $js_url_parsed['path'], '.js' ) ) {
-				$do_concat = true;
+				$do_concat = http_concat_should_concat_js();
 			} else {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Maybe Not Static File %s -->\n", esc_html( $handle ), esc_html( $obj->src ) );
@@ -126,7 +122,6 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 					echo sprintf( "\n<!-- No Concat JS %s => Has Inline Content -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
-				error_log( '!! INLINE SCRIPT' );
 			}
 
 			// Skip core scripts that use Strict Mode
@@ -177,12 +172,10 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 
 			if ( $using_strict !== $script_is_strict ) {
 				if ( $script_is_strict ) {
-					error_log( '>>>>>> MOVING TO STRICT' );
 					$using_strict = true;
 					$strict_count = 0;
 				} else {
 					$using_strict = false;
-					error_log( ">>>>>> END OF STRICT after $strict_count continuous strict scripts" );
 				}
 			}
 
@@ -241,23 +234,26 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 				if ( isset( $href ) ) {
 					$handles = implode( ',', $js_array['handles'] );
 
-					$load_mode = "defer";
+					$load_mode = '';
+					if ( http_concat_should_defer_noncritcal_js() ) {
+						$load_mode = "defer";
 
-					// Stuff to skip loading JS async/defer
-					if ( is_admin() ) {
-						$load_mode = '';
-					}
-					if ( false !== strpos( $handles, 'jquery' ) ) {
-						$load_mode = '';
-					}
-					if ( false !== strpos( $handles, 'a8c_' ) ) {
-						$load_mode = '';
-					}
-					if ( false !== strpos( $handles, 'backbone' ) ) {
-						$load_mode = '';
-					}
-					if ( false !== strpos( $handles, 'underscore' ) ) {
-						$load_mode = '';
+						// Stuff to skip loading JS async/defer
+						if ( is_admin() ) {
+							$load_mode = '';
+						}
+						if ( false !== strpos( $handles, 'jquery' ) ) {
+							$load_mode = '';
+						}
+						if ( false !== strpos( $handles, 'a8c_' ) ) {
+							$load_mode = '';
+						}
+						if ( false !== strpos( $handles, 'backbone' ) ) {
+							$load_mode = '';
+						}
+						if ( false !== strpos( $handles, 'underscore' ) ) {
+							$load_mode = '';
+						}
 					}
 
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -331,4 +327,6 @@ function js_concat_init() {
 	$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-add_action( 'init', 'js_concat_init' );
+if ( http_concat_should_concat_js() || http_concat_should_defer_noncritcal_js() ) {
+	add_action( 'init', 'js_concat_init' );
+}
