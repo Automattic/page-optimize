@@ -1,6 +1,5 @@
 <?php
 
-// TODO: Add Settings link to plugin
 // TODO: Fix textdomain for strings?
 
 function http_concat_settings_page() {

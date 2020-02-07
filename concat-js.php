@@ -95,7 +95,6 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 				}
 			}
 
-			// TODO: Maybe this should be configurable
 			// Don't try to concat externally hosted scripts
 			$is_internal_url = Http_Concat_Utils::is_internal_url( $js_url, $siteurl );
 			if ( $do_concat && ! $is_internal_url ) {

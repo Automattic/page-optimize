@@ -57,10 +57,8 @@ function http_concat_service_request() {
 	// TODO: Shouldn't $output be a string with the compressed contents? What is file_get_contents() used for?
 	//$etag  = '"' . md5( file_get_contents( $output ) ) . '"';
 	$etag  = '"' . md5( $output ) . '"';
-	$meta   = array(
-		'headers' => headers_list(),
-	);
 
+	// TODO: Do we still need this x-http-concat header?
 	header( 'x-http-concat: uncached' );
 	header( 'Cache-Control: max-age=' . 31536000 );
 	header( 'ETag: ' . $etag );
