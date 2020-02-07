@@ -28,7 +28,7 @@ function page_optimize_should_concat_js() {
 	return !! get_option( 'page_optimize-js' );
 }
 
-// TODO: Support deferred scripts regardless of whether concat is enabled
+// TODO: Support JS load mode regardless of whether concat is enabled
 function page_optimize_load_mode_js() {
 	// Support query param for easy testing
 	if ( ! empty( $_GET['load-mode-js'] ) ) {
