@@ -41,7 +41,7 @@ class Http_Concat_Utils {
 			&& false !== strpos( $url_path, '/wp-content/' )
 			&& defined( 'WP_CONTENT_DIR' )
 		) {
-			$url_path = str_replace( '/wp-content', WP_CONTENT_DIR, $url_path, $count = 1 );
+			$url_path = str_replace( '/wp-content', WP_CONTENT_DIR, $url_path );
 			$realpath = realpath( $url_path );
 		}
 

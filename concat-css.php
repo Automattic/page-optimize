@@ -143,7 +143,7 @@ class Http_Concat_CSS_Concat extends WP_Styles {
 							&& false !== strpos( $url, '/wp-content/' )
 							&& defined( 'WP_CONTENT_DIR' )
 						) {
-							$path = str_replace( '/wp-content', WP_CONTENT_DIR, $url, $count = 1 );
+							$path = str_replace( '/wp-content', WP_CONTENT_DIR, $url );
 						}
 
 						return $path;
