@@ -29,13 +29,15 @@ function page_optimize_should_concat_js() {
 }
 
 // TODO: Support deferred scripts regardless of whether concat is enabled
-function page_optimize_should_defer_noncritcal_js() {
+function page_optimize_load_mode_js() {
 	// Support query param for easy testing
-	if ( isset( $_GET['defer-js'] ) ) {
-		return $_GET['defer-js'] !== '0';
+	if ( ! empty( $_GET['load-mode-js'] ) ) {
+		$load_mode = page_optimize_sanitize_js_load_mode( $_GET['load-mode-js'] );
+	} else {
+		$load_mode = page_optimize_sanitize_js_load_mode( get_option( 'page_optimize-load-mode' ) );
 	}
 
-	return !! get_option( 'page_optimize-js-defer' );
+	return $load_mode;
 }
 
 function page_optimize_should_concat_css() {
@@ -45,6 +47,28 @@ function page_optimize_should_concat_css() {
 	}
 
 	return !! get_option( 'page_optimize-css' );
+}
+
+function page_optimize_js_exclude_list() {
+	$exclude_string = get_option( 'page_optimize-js-exclude' );
+	if ( empty( $exclude_string ) ) {
+		return [];
+	}
+
+	return explode( ',', $exclude_string );
+}
+
+function page_optimize_sanitize_js_load_mode( $value ) {
+	switch ( $value ) {
+		case 'async':
+		case 'defer':
+			break;
+		default:
+			$value = '';
+			break;
+	}
+
+	return $value;
 }
 
 require_once __DIR__ . '/settings.php';
