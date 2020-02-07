@@ -93,7 +93,7 @@ function page_optimize_settings_init() {
 	register_setting( 'performance', 'page_optimize-js-exclude', array(
 		'description' => __( 'Comma separated list of strings to exclude from concating' ),
 		'type' => 'string',
-		'default' => '',
+		'default' => 'jquery,underscore,backbone', // WordPress core stuff, a lot of other plugins depend on it.
 		'sanitize_callback' => function ( $value ) {
 			if ( empty( $value ) ) {
 				return '';

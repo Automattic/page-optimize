@@ -241,12 +241,6 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 					$handles = implode( ',', $js_array['handles'] );
 
 					$load_mode = page_optimize_load_mode_js();
-					if ( ! empty( $load_mode ) ) {
-						// Don't async/defer on wp-admin/ pages
-						if ( is_admin() ) {
-							$load_mode = '';
-						}
-					}
 
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo "<script data-handles='" . esc_attr( $handles ) . "' $load_mode type='text/javascript' src='$href'></script>\n";
@@ -325,6 +319,6 @@ function js_concat_init() {
 	$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-if ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) {
+if ( ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) ) {
 	add_action( 'init', 'js_concat_init' );
 }
