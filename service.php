@@ -5,57 +5,8 @@ $http_concat_types = array(
 	'js' => 'application/x-javascript'
 );
 
-if ( ! defined( 'HTTP_CONCAT_CACHE' ) ) {
-	define( 'WP_HTTP_CONCAT_CACHE', __DIR__ . '/cache' );
-}
-
 function http_concat_service_request() {
-	// TODO: Handle non-existent cache directory
-
-	// TODO: Can we cache with a hash of the file list rather than the complete URI? We might be able to share cached concats across pages
-	$cache_file      = WP_HTTP_CONCAT_CACHE . '/' . md5( $_SERVER['REQUEST_URI'] );
-	$cache_file_meta = WP_HTTP_CONCAT_CACHE . '/meta-' . md5( $_SERVER['REQUEST_URI'] );
-
-	if ( file_exists( $cache_file ) ) {
-		if ( time() - filemtime( $cache_file ) > 2 * 3600 ) {
-			// TODO: Make max age configurable
-			// file older than 2 hours, delete cache.
-			unlink( $cache_file );
-			unlink( $cache_file_meta );
-		} else {
-			// file younger than 2 hours, return cache.
-			if ( file_exists( $cache_file_meta ) ) {
-				$meta = json_decode( file_get_contents( $cache_file_meta ) );
-				if ( null !== $meta && isset( $meta->headers ) ) {
-					foreach ( $meta->headers as $header ) {
-						header( $header );
-					}
-				}
-			}
-			$etag = '"' . md5( file_get_contents( $cache_file ) ) . '"';
-
-			ob_start( 'ob_gzhandler' );
-			header( 'x-http-concat: cached' );
-			header( 'Cache-Control: max-age=' . 31536000 );
-			header( 'ETag: ' . $etag );
-
-			if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
-				if ( strtotime( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) < filemtime( $cache_file ) ) {
-					header( 'HTTP/1.1 304 Not Modified' );
-					exit;
-				}
-			}
-
-			echo file_get_contents( $cache_file ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
-			$output = ob_get_clean();
-			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
-			die();
-		}
-	}
-
 	$output = http_concat_build_output();
-	// TODO: Shouldn't $output be a string with the compressed contents? What is file_get_contents() used for?
-	//$etag  = '"' . md5( file_get_contents( $output ) ) . '"';
 	$etag  = '"' . md5( $output ) . '"';
 
 	// TODO: Do we still need this x-http-concat header?
@@ -63,15 +14,6 @@ function http_concat_service_request() {
 	header( 'Cache-Control: max-age=' . 31536000 );
 	header( 'ETag: ' . $etag );
 
-	if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
-		if ( strtotime( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) < filemtime( $cache_file ) ) {
-			header( 'HTTP/1.1 304 Not Modified' );
-			exit;
-		}
-	}
-
-	file_put_contents( $cache_file, $output );
-	file_put_contents( $cache_file_meta, json_encode( $meta ) );
 	echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
 	die();
 }
