@@ -18,7 +18,7 @@ function page_optimize_settings_page() {
 }
 
 function page_optimize_settings_section() {
-	_e( 'Concat JavaScript and CSS for lower number of requests, and faster site loading.' );
+	_e( 'Concat JavaScript and CSS for faster site loading and lower number of requests. Scripts are grouped by the original placement.' );
 }
 
 function page_optimize_settings_field_js( $args ) {
@@ -28,13 +28,12 @@ function page_optimize_settings_field_js( $args ) {
 			<input type="checkbox" id="page_optimize-js" name="page_optimize-js" value="1" <?php checked( get_option( 'page_optimize-js' ) ); ?>>
 			<?php echo esc_html( __( 'Concatenate scripts' ) ); ?>
 		</label>
-		<br>
+		<br/>
 		<label>
+			<?php echo esc_html( __( 'Comma separated list of strings to exclude from concating:' ) ); ?>
+			<br/>
 			<input type="input" id="page_optimize-js-exclude" name="page_optimize-js-exclude" value="<?php echo sanitize_text_field( get_option( 'page_optimize-js-exclude' ) ); ?>">
-			<?php echo esc_html( __( 'Comma separated list of strings to exclude from concating.' ) ); ?>
 		</label>
-
-		<p><?php _e( 'JavaScript is grouped by the original script placement.' ); ?></p>
 	</div>
 	<?php
 }
@@ -68,7 +67,7 @@ function page_optimize_settings_field_css( $args ) {
 			<?php echo esc_html( __( 'Concatenate styles' ) ); ?>
 		</label>
 
-		<p><?php _e( 'CSS is grouped by the original placement CSS and minified.' ); ?></p>
+		<p><?php _e( 'CSS is minified.' ); ?></p>
 	</div>
 	<?php
 }
