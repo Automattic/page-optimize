@@ -8,8 +8,6 @@ Version: 0.02
 Author URI: http://automattic.com/
 */
 
-// TODO: How to disable Jetpack static file optimizations for JS and CSS? Will probably need to handle outside of this plugin
-// TODO: Confirm JS type should still be application/x-javascript. I believe we may have changed it recently.
 // TODO: Copy tests from nginx-http-concat and/or write them
 
 // TODO: Make concat URL dir configurable

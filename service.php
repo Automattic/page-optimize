@@ -2,7 +2,7 @@
 
 $page_optimize_types = array(
 	'css' => 'text/css',
-	'js' => 'application/x-javascript'
+	'js' => 'application/javascript'
 );
 
 function page_optimize_service_request() {
@@ -181,7 +181,7 @@ function page_optimize_build_output() {
 			$buf = $css_minify->run( $buf );
 		}
 
-		if ( 'application/x-javascript' == $mime_type ) {
+		if ( $page_optimize_types['js'] === $mime_type ) {
 			$output .= "$buf;\n";
 		} else {
 			$output .= "$buf";
