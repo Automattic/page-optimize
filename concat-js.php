@@ -1,5 +1,7 @@
 <?php
 
+define( 'WP_DEBUG', true );
+
 require_once( __DIR__ . '/utils.php' );
 
 if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
@@ -55,9 +57,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 		$this->all_deps( $handles );
 		$level = 0;
 
-		$using_strict = false;
 		foreach ( $this->to_do as $key => $handle ) {
-			$script_is_strict = false;
 			if ( in_array( $handle, $this->done ) || ! isset( $this->registered[ $handle ] ) ) {
 				continue;
 			}
@@ -165,6 +165,14 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 				$javascripts[ $level ]['paths'][] = $js_url_parsed['path'];
 				$javascripts[ $level ]['handles'][] = $handle;
 
+			} else if ( $script_is_strict ) {
+				$strict_level = 'strict';
+				if ( ! isset( $javascripts[ $strict_level ] ) ) {
+					$javascripts[ $strict_level ]['type'] = 'concat';
+				}
+
+				$javascripts[ $strict_level ]['paths'][] = $js_url_parsed['path'];
+				$javascripts[ $strict_level ]['handles'][] = $handle;
 			} else {
 				$level ++;
 				$javascripts[ $level ]['type'] = 'do_item';
@@ -173,23 +181,13 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 			}
 			unset( $this->to_do[ $key ] );
 
-			if ( $using_strict !== $script_is_strict ) {
-				if ( $script_is_strict ) {
-					$using_strict = true;
-					$strict_count = 0;
-				} else {
-					$using_strict = false;
-				}
-			}
-
-			if ( $script_is_strict ) {
-				$strict_count ++;
-			}
 		}
 
 		if ( empty( $javascripts ) ) {
 			return $this->done;
 		}
+
+		error_log( var_export( $javascripts['strict'], true ) );
 
 		foreach ( $javascripts as $js_array ) {
 			if ( 'do_item' == $js_array['type'] ) {
