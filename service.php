@@ -7,7 +7,7 @@ $page_optimize_types = array(
 
 function page_optimize_service_request() {
 	$output = page_optimize_build_output();
-	$etag  = '"' . md5( $output ) . '"';
+	$etag = '"' . md5( $output ) . '"';
 
 	// TODO: Do we still need this x-http-concat header?
 	header( 'x-http-concat: uncached' );
@@ -30,15 +30,17 @@ function page_optimize_build_output() {
 	$concat_unique = true;
 
 	/* Main() */
-	if ( ! in_array( $_SERVER['REQUEST_METHOD'], array( 'GET', 'HEAD' ) ) )
+	if ( ! in_array( $_SERVER['REQUEST_METHOD'], array( 'GET', 'HEAD' ) ) ) {
 		page_optimize_status_exit( 400 );
+	}
 
 	// /_static/??/foo/bar.css,/foo1/bar/baz.css?m=293847g
 	// or
 	// /_static/??-eJzTT8vP109KLNJLLi7W0QdyDEE8IK4CiVjn2hpZGluYmKcDABRMDPM=
-	$args = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY );
-	if ( ! $args || false === strpos( $args, '?' ) )
+	$args = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
+	if ( ! $args || false === strpos( $args, '?' ) ) {
 		page_optimize_status_exit( 400 );
+	}
 
 	$args = substr( $args, strpos( $args, '?' ) + 1 );
 
@@ -56,17 +58,20 @@ function page_optimize_build_output() {
 
 	// /foo/bar.css,/foo1/bar/baz.css?m=293847g
 	$version_string_pos = strpos( $args, '?' );
-	if ( false !== $version_string_pos )
+	if ( false !== $version_string_pos ) {
 		$args = substr( $args, 0, $version_string_pos );
+	}
 
 	// /foo/bar.css,/foo1/bar/baz.css
 	$args = explode( ',', $args );
-	if ( ! $args )
+	if ( ! $args ) {
 		page_optimize_status_exit( 400 );
+	}
 
 	// array( '/foo/bar.css', '/foo1/bar/baz.css' )
-	if ( 0 == count( $args ) || count( $args ) > $concat_max_files )
+	if ( 0 == count( $args ) || count( $args ) > $concat_max_files ) {
 		page_optimize_status_exit( 400 );
+	}
 
 	// If we're in a subdirectory context, use that as the root.
 	// We can't assume that the root serves the same content as the subdir.
@@ -87,19 +92,23 @@ function page_optimize_build_output() {
 	foreach ( $args as $uri ) {
 		$fullpath = page_optimize_get_path( $uri );
 
-		if ( ! file_exists( $fullpath ) )
+		if ( ! file_exists( $fullpath ) ) {
 			page_optimize_status_exit( 404 );
+		}
 
 		$mime_type = page_optimize_get_mime_type( $fullpath );
-		if ( ! in_array( $mime_type, $page_optimize_types ) )
+		if ( ! in_array( $mime_type, $page_optimize_types ) ) {
 			page_optimize_status_exit( 400 );
+		}
 
 		if ( $concat_unique ) {
-			if ( ! isset( $last_mime_type ) )
+			if ( ! isset( $last_mime_type ) ) {
 				$last_mime_type = $mime_type;
+			}
 
-			if ( $last_mime_type != $mime_type )
+			if ( $last_mime_type != $mime_type ) {
 				page_optimize_status_exit( 400 );
+			}
 		}
 
 		$stat = stat( $fullpath );
@@ -107,8 +116,9 @@ function page_optimize_build_output() {
 			page_optimize_status_exit( 500 );
 		}
 
-		if ( $stat['mtime'] > $last_modified )
+		if ( $stat['mtime'] > $last_modified ) {
 			$last_modified = $stat['mtime'];
+		}
 
 		$buf = file_get_contents( $fullpath );
 		if ( false === $buf ) {
@@ -135,8 +145,9 @@ function page_optimize_build_output() {
 					function ( $match ) {
 						global $pre_output;
 
-						if ( 0 === strpos( $pre_output, '@charset' ) )
+						if ( 0 === strpos( $pre_output, '@charset' ) ) {
 							return '';
+						}
 
 						$pre_output = $match[0] . "\n" . $pre_output;
 
@@ -154,11 +165,12 @@ function page_optimize_build_output() {
 					function ( $match ) use ( $dirpath ) {
 						global $pre_output;
 
-						if ( 0 !== strpos( $match['path'], 'http' ) && '/' != $match['path'][0] )
+						if ( 0 !== strpos( $match['path'], 'http' ) && '/' != $match['path'][0] ) {
 							$pre_output .= $match['pre_path'] . ( $dirpath == '/' ? '/' : $dirpath . '/' ) .
-								$match['path'] . $match['post_path'] . "\n";
-						else
+										   $match['path'] . $match['post_path'] . "\n";
+						} else {
 							$pre_output .= $match[0] . "\n";
+						}
 
 						return '';
 					},
@@ -169,10 +181,11 @@ function page_optimize_build_output() {
 			$buf = $css_minify->run( $buf );
 		}
 
-		if ( 'application/x-javascript' == $mime_type )
+		if ( 'application/x-javascript' == $mime_type ) {
 			$output .= "$buf;\n";
-		else
+		} else {
 			$output .= "$buf";
+		}
 	}
 
 	header( 'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $last_modified ) . ' GMT' );
@@ -193,20 +206,23 @@ function page_optimize_get_mime_type( $file ) {
 	global $page_optimize_types;
 
 	$lastdot_pos = strrpos( $file, '.' );
-	if ( false === $lastdot_pos )
+	if ( false === $lastdot_pos ) {
 		return false;
+	}
 
 	$ext = substr( $file, $lastdot_pos + 1 );
 
-	return isset( $page_optimize_types[$ext] ) ? $page_optimize_types[$ext] : false;
+	return isset( $page_optimize_types[ $ext ] ) ? $page_optimize_types[ $ext ] : false;
 }
 
 function page_optimize_get_path( $uri ) {
-	if ( ! strlen( $uri ) )
+	if ( ! strlen( $uri ) ) {
 		page_optimize_status_exit( 400 );
+	}
 
-	if ( false !== strpos( $uri, '..' ) || false !== strpos( $uri, "\0" ) )
+	if ( false !== strpos( $uri, '..' ) || false !== strpos( $uri, "\0" ) ) {
 		page_optimize_status_exit( 400 );
+	}
 
 	if ( false !== strpos( $uri, '/wp-content/' ) && defined( 'WP_CONTENT_DIR' ) ) {
 		$files_root = WP_CONTENT_DIR;

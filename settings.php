@@ -23,7 +23,7 @@ function page_optimize_settings_section() {
 
 function page_optimize_settings_field_js( $args ) {
 	// TODO: Add additional explanations
-?>
+	?>
 	<div>
 		<label>
 			<input type="checkbox" id="page_optimize-js" name="page_optimize-js" value="1" <?php checked( get_option( 'page_optimize-js' ) ); ?>>
@@ -36,16 +36,16 @@ function page_optimize_settings_field_js( $args ) {
 			<?php echo esc_html( __( 'Defer execution of non-critical scripts' ) ); ?>
 		</label>
 	</div>
-<?php
+	<?php
 }
 
 function page_optimize_settings_field_css( $args ) {
-?>
+	?>
 	<label>
 		<input type="checkbox" id="page_optimize-css" name="page_optimize-css" value="1" <?php checked( get_option( 'page_optimize-css' ) ); ?>>
 		<?php echo esc_html( __( 'Concatenate styles' ) ); ?>
 	</label>
-<?php
+	<?php
 }
 
 function page_optimize_settings_add_menu() {
@@ -56,46 +56,46 @@ add_action( 'admin_menu', 'page_optimize_settings_add_menu' );
 function page_optimize_settings_init() {
 	register_setting( 'performance', 'page_optimize-js', array(
 		'description' => __( 'JavaScript concatenation' ),
-		'type'        => 'boolean',
-		'default'     => false,
+		'type' => 'boolean',
+		'default' => false,
 	) );
 	register_setting( 'performance', 'page_optimize-js-defer', array(
-		'description' => __( 'Defer non-critical scripts' ),
-		'type'        => 'boolean',
-		'default'     => false,
+		'description' => __( 'Async/Defer non-critical scripts' ),
+		'type' => 'boolean',
+		'default' => false,
 	) );
 	register_setting( 'performance', 'page_optimize-css', array(
 		'description' => __( 'CSS concatenation' ),
-		'type'        => 'boolean',
-		'default'     => false,
+		'type' => 'boolean',
+		'default' => false,
 	) );
 
 	add_settings_section(
 		'page_optimize_settings_section',
 		__( 'Page Optimization' ),
 		'page_optimize_settings_section',
-		'page-optimize',
+		'page-optimize'
 	);
 	add_settings_field(
 		'page_optimize_js',
 		__( 'JavaScript' ),
 		'page_optimize_settings_field_js',
 		'page-optimize',
-		'page_optimize_settings_section',
+		'page_optimize_settings_section'
 	);
 	add_settings_field(
 		'page_optimize_css',
 		__( 'CSS' ),
 		'page_optimize_settings_field_css',
 		'page-optimize',
-		'page_optimize_settings_section',
+		'page_optimize_settings_section'
 	);
 }
 add_action( 'admin_init', 'page_optimize_settings_init' );
 
 function page_optimize_add_plugin_settings_link( $plugin_action_links, $plugin_file = null ) {
 	$is_this_plugin = dirname( $plugin_file ) === basename( __DIR__ );
-	if ( ! $is_this_plugin ){
+	if ( ! $is_this_plugin ) {
 		return $plugin_action_links;
 	}
 

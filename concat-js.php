@@ -2,8 +2,9 @@
 
 require_once( __DIR__ . '/utils.php' );
 
-if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) )
+if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
 	define( 'ALLOW_GZIP_COMPRESSION', true );
+}
 
 class Http_Concat_JS_Concat extends WP_Scripts {
 	private $old_scripts;
@@ -49,7 +50,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 
 	function do_items( $handles = false, $group = false ) {
 		$handles = false === $handles ? $this->queue : (array) $handles;
-		$javascripts= array();
+		$javascripts = array();
 		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
 
 		$this->all_deps( $handles );
@@ -57,28 +58,30 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 
 		$total_count = count( $this->to_do );
 		$using_strict = false;
-		foreach( $this->to_do as $key => $handle ) {
+		foreach ( $this->to_do as $key => $handle ) {
 			$script_is_strict = false;
-			if ( in_array( $handle, $this->done ) || !isset( $this->registered[$handle] ) )
-				continue;
-
-			if ( 0 === $group && $this->groups[$handle] > 0 ) {
-				$this->in_footer[] = $handle;
-				unset( $this->to_do[$key] );
+			if ( in_array( $handle, $this->done ) || ! isset( $this->registered[ $handle ] ) ) {
 				continue;
 			}
 
-			if ( ! $this->registered[$handle]->src ) { // Defines a group.
+			if ( 0 === $group && $this->groups[ $handle ] > 0 ) {
+				$this->in_footer[] = $handle;
+				unset( $this->to_do[ $key ] );
+				continue;
+			}
+
+			if ( ! $this->registered[ $handle ]->src ) { // Defines a group.
 				// if there are localized items, echo them
 				$this->print_extra_script( $handle );
 				$this->done[] = $handle;
 				continue;
 			}
 
-			if ( false === $group && in_array( $handle, $this->in_footer, true ) )
+			if ( false === $group && in_array( $handle, $this->in_footer, true ) ) {
 				$this->in_footer = array_diff( $this->in_footer, (array) $handle );
+			}
 
-			$obj = $this->registered[$handle];
+			$obj = $this->registered[ $handle ];
 			$js_url = $obj->src;
 			$js_url_parsed = parse_url( $js_url );
 			$extra = $obj->extra;
@@ -155,19 +158,20 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 			$do_concat = apply_filters( 'js_do_concat', $do_concat, $handle );
 
 			if ( true === $do_concat ) {
-				if ( !isset( $javascripts[$level] ) )
-					$javascripts[$level]['type'] = 'concat';
+				if ( ! isset( $javascripts[ $level ] ) ) {
+					$javascripts[ $level ]['type'] = 'concat';
+				}
 
-				$javascripts[$level]['paths'][] = $js_url_parsed['path'];
-				$javascripts[$level]['handles'][] = $handle;
+				$javascripts[ $level ]['paths'][] = $js_url_parsed['path'];
+				$javascripts[ $level ]['handles'][] = $handle;
 
 			} else {
-				$level++;
-				$javascripts[$level]['type'] = 'do_item';
-				$javascripts[$level]['handle'] = $handle;
-				$level++;
+				$level ++;
+				$javascripts[ $level ]['type'] = 'do_item';
+				$javascripts[ $level ]['handle'] = $handle;
+				$level ++;
 			}
-			unset( $this->to_do[$key] );
+			unset( $this->to_do[ $key ] );
 
 			if ( $using_strict !== $script_is_strict ) {
 				if ( $script_is_strict ) {
@@ -179,30 +183,32 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 			}
 
 			if ( $script_is_strict ) {
-				$strict_count++;
+				$strict_count ++;
 			}
 		}
 
-		if ( empty( $javascripts ) )
+		if ( empty( $javascripts ) ) {
 			return $this->done;
+		}
 
 		foreach ( $javascripts as $js_array ) {
 			if ( 'do_item' == $js_array['type'] ) {
-				if ( $this->do_item( $js_array['handle'], $group ) )
+				if ( $this->do_item( $js_array['handle'], $group ) ) {
 					$this->done[] = $js_array['handle'];
+				}
 			} else if ( 'concat' == $js_array['type'] ) {
 				array_map( array( $this, 'print_extra_script' ), $js_array['handles'] );
 
-				if ( isset( $js_array['paths'] ) && count( $js_array['paths'] ) > 1) {
-					$paths = array_map( function( $url ) {
+				if ( isset( $js_array['paths'] ) && count( $js_array['paths'] ) > 1 ) {
+					$paths = array_map( function ( $url ) {
 						$path = ABSPATH . $url;
 
 						if ( ! file_exists( $path )
-							&& false !== strpos( $url, '/wp-content/' )
-							&& defined( 'WP_CONTENT_DIR' )
+							 && false !== strpos( $url, '/wp-content/' )
+							 && defined( 'WP_CONTENT_DIR' )
 						) {
 							$count = 1; // Only variables can be passed by reference.
-							$path  = str_replace( '/wp-content', WP_CONTENT_DIR, $url, $count );
+							$path = str_replace( '/wp-content', WP_CONTENT_DIR, $url, $count );
 						}
 
 						return $path;
@@ -212,8 +218,9 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 
 					if ( $this->allow_gzip_compression ) {
 						$path_64 = base64_encode( gzcompress( $path_str ) );
-						if ( strlen( $path_str ) > ( strlen( $path_64 ) + 1 ) )
+						if ( strlen( $path_str ) > ( strlen( $path_64 ) + 1 ) ) {
 							$path_str = '-' . $path_64;
+						}
 					}
 
 					$href = $siteurl . "/_static/??" . $path_str;
@@ -271,32 +278,38 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 		}
 
 		do_action( 'js_concat_did_items', $javascripts );
+
 		return $this->done;
 	}
 
 	function cache_bust_mtime( $url, $siteurl ) {
-		if ( strpos( $url, '?m=' ) )
+		if ( strpos( $url, '?m=' ) ) {
 			return $url;
+		}
 
 		$parts = parse_url( $url );
-		if ( ! isset( $parts['path'] ) || empty( $parts['path'] ) )
+		if ( ! isset( $parts['path'] ) || empty( $parts['path'] ) ) {
 			return $url;
+		}
 
 		$file = Http_Concat_Utils::realpath( $url, $siteurl );
 
 		$mtime = false;
-		if ( file_exists( $file ) )
+		if ( file_exists( $file ) ) {
 			$mtime = filemtime( $file );
+		}
 
-		if ( ! $mtime )
+		if ( ! $mtime ) {
 			return $url;
+		}
 
 		if ( false === strpos( $url, '?' ) ) {
 			$q = '';
 		} else {
 			list( $url, $q ) = explode( '?', $url, 2 );
-			if ( strlen( $q ) )
+			if ( strlen( $q ) ) {
 				$q = '&amp;' . $q;
+			}
 		}
 
 		return "$url?m={$mtime}g{$q}";
