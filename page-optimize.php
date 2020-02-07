@@ -1,8 +1,8 @@
 <?php
 /*
-Plugin Name: HTTP Concat
+Plugin Name: Page Optimize
 Plugin URI: http://wp-plugins.org/#
-Description: Concatenates JS and CSS
+Description: Optimizes JS and CSS for faster page load and render in the browser
 Author: Automattic
 Version: 0.01
 Author URI: http://automattic.com/
@@ -16,33 +16,33 @@ Author URI: http://automattic.com/
 // phpcs:disable WordPress.VIP.SuperGlobalInputUsage.AccessDetected, WordPress.Security.ValidatedSanitizedInput, WordPress.VIP.FileSystemWritesDisallow, WordPress.VIP.RestrictedFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_get_contents, WordPress.WP.AlternativeFunctions.file_system_read_file_put_contents, WordPress.WP.AlternativeFunctions.json_encode_json_encode
 if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUEST_URI'], 0, 9 ) ) {
 	require_once __DIR__ . '/service.php';
-	http_concat_service_request();
+	page_optimize_service_request();
 	exit;
 }
 
-function http_concat_should_concat_js() {
+function page_optimize_should_concat_js() {
 	// Support query param for easy testing
 	if ( isset( $_GET['concat-js'] ) ) {
 		return $_GET['concat-js'] !== '0';
 	}
-	return !! get_option( 'http_concat-js' );
+	return !! get_option( 'page_optimize-js' );
 }
 
 // TODO: Support deferred scripts regardless of whether concat is enabled
-function http_concat_should_defer_noncritcal_js() {
+function page_optimize_should_defer_noncritcal_js() {
 	// Support query param for easy testing
 	if ( isset( $_GET['defer-js'] ) ) {
 		return $_GET['defer-js'] !== '0';
 	}
-	return !! get_option( 'http_concat-js-defer' );
+	return !! get_option( 'page_optimize-js-defer' );
 }
 
-function http_concat_should_concat_css() {
+function page_optimize_should_concat_css() {
 	// Support query param for easy testing
 	if ( isset( $_GET['concat-css'] ) ) {
 		return $_GET['concat-css'] !== '0';
 	}
-	return !! get_option( 'http_concat-css' );
+	return !! get_option( 'page_optimize-css' );
 }
 
 require_once __DIR__ . '/settings.php';

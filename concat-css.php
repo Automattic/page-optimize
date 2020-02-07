@@ -29,7 +29,7 @@ class Http_Concat_CSS_Concat extends WP_Styles {
 	function do_items( $handles = false, $group = false ) {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$stylesheets = array();
-		$siteurl = apply_filters( 'ngx_http_concat_site_url', $this->base_url );
+		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
 
 		$this->all_deps( $handles );
 
@@ -160,9 +160,9 @@ class Http_Concat_CSS_Concat extends WP_Styles {
 
 				$handles = array_keys( $css );
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					echo apply_filters( 'ngx_http_concat_style_loader_tag', "<link data-handles='" . esc_attr( implode( ',',$handles ) ) . "' rel='stylesheet' id='$media-css-$idx' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
+					echo apply_filters( 'page_optimize_style_loader_tag', "<link data-handles='" . esc_attr( implode( ',',$handles ) ) . "' rel='stylesheet' id='$media-css-$idx' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
 				} else {
-					echo apply_filters( 'ngx_http_concat_style_loader_tag', "<link rel='stylesheet' id='$media-css-$idx' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
+					echo apply_filters( 'page_optimize_style_loader_tag', "<link rel='stylesheet' id='$media-css-$idx' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
 				}
 				array_map( array( $this, 'print_inline_style' ), array_keys( $css ) );
 			}
@@ -222,6 +222,6 @@ function css_concat_init() {
 	$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-if ( http_concat_should_concat_css() ) {
+if ( page_optimize_should_concat_css() ) {
 	add_action( 'init', 'css_concat_init' );
 }

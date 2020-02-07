@@ -50,7 +50,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 	function do_items( $handles = false, $group = false ) {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$javascripts= array();
-		$siteurl = apply_filters( 'ngx_http_concat_site_url', $this->base_url );
+		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
 
 		$this->all_deps( $handles );
 		$level = 0;
@@ -88,7 +88,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 
 			// Only try to concat static js files
 			if ( false !== strpos( $js_url_parsed['path'], '.js' ) ) {
-				$do_concat = http_concat_should_concat_js();
+				$do_concat = page_optimize_should_concat_js();
 			} else {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Maybe Not Static File %s -->\n", esc_html( $handle ), esc_html( $obj->src ) );
@@ -234,7 +234,7 @@ class Http_Concat_JS_Concat extends WP_Scripts {
 					$handles = implode( ',', $js_array['handles'] );
 
 					$load_mode = '';
-					if ( http_concat_should_defer_noncritcal_js() ) {
+					if ( page_optimize_should_defer_noncritcal_js() ) {
 						$load_mode = "defer";
 
 						// Stuff to skip loading JS async/defer
@@ -326,6 +326,6 @@ function js_concat_init() {
 	$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-if ( http_concat_should_concat_js() || http_concat_should_defer_noncritcal_js() ) {
+if ( page_optimize_should_concat_js() || page_optimize_should_defer_noncritcal_js() ) {
 	add_action( 'init', 'js_concat_init' );
 }

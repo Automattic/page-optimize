@@ -1,12 +1,12 @@
 <?php
 
-$http_concat_types = array(
+$page_optimize_types = array(
 	'css' => 'text/css',
 	'js' => 'application/x-javascript'
 );
 
-function http_concat_service_request() {
-	$output = http_concat_build_output();
+function page_optimize_service_request() {
+	$output = page_optimize_build_output();
 	$etag  = '"' . md5( $output ) . '"';
 
 	// TODO: Do we still need this x-http-concat header?
@@ -18,8 +18,8 @@ function http_concat_service_request() {
 	die();
 }
 
-function http_concat_build_output() {
-	global $http_concat_types;
+function page_optimize_build_output() {
+	global $page_optimize_types;
 	ob_start( 'ob_gzhandler' );
 
 	require_once( __DIR__ . '/cssmin/cssmin.php' );
@@ -31,14 +31,14 @@ function http_concat_build_output() {
 
 	/* Main() */
 	if ( ! in_array( $_SERVER['REQUEST_METHOD'], array( 'GET', 'HEAD' ) ) )
-		http_concat_status_exit( 400 );
+		page_optimize_status_exit( 400 );
 
 	// /_static/??/foo/bar.css,/foo1/bar/baz.css?m=293847g
 	// or
 	// /_static/??-eJzTT8vP109KLNJLLi7W0QdyDEE8IK4CiVjn2hpZGluYmKcDABRMDPM=
 	$args = parse_url($_SERVER['REQUEST_URI'], PHP_URL_QUERY );
 	if ( ! $args || false === strpos( $args, '?' ) )
-		http_concat_status_exit( 400 );
+		page_optimize_status_exit( 400 );
 
 	$args = substr( $args, strpos( $args, '?' ) + 1 );
 
@@ -50,7 +50,7 @@ function http_concat_build_output() {
 
 		// Invalid data, abort!
 		if ( false === $args ) {
-			http_concat_status_exit( 400 );
+			page_optimize_status_exit( 400 );
 		}
 	}
 
@@ -62,11 +62,11 @@ function http_concat_build_output() {
 	// /foo/bar.css,/foo1/bar/baz.css
 	$args = explode( ',', $args );
 	if ( ! $args )
-		http_concat_status_exit( 400 );
+		page_optimize_status_exit( 400 );
 
 	// array( '/foo/bar.css', '/foo1/bar/baz.css' )
 	if ( 0 == count( $args ) || count( $args ) > $concat_max_files )
-		http_concat_status_exit( 400 );
+		page_optimize_status_exit( 400 );
 
 	// If we're in a subdirectory context, use that as the root.
 	// We can't assume that the root serves the same content as the subdir.
@@ -85,26 +85,26 @@ function http_concat_build_output() {
 	$css_minify = new tubalmartin\CssMin\Minifier;
 
 	foreach ( $args as $uri ) {
-		$fullpath = http_concat_get_path( $uri );
+		$fullpath = page_optimize_get_path( $uri );
 
 		if ( ! file_exists( $fullpath ) )
-			http_concat_status_exit( 404 );
+			page_optimize_status_exit( 404 );
 
-		$mime_type = http_concat_get_mtype( $fullpath );
-		if ( ! in_array( $mime_type, $http_concat_types ) )
-			http_concat_status_exit( 400 );
+		$mime_type = page_optimize_get_mime_type( $fullpath );
+		if ( ! in_array( $mime_type, $page_optimize_types ) )
+			page_optimize_status_exit( 400 );
 
 		if ( $concat_unique ) {
 			if ( ! isset( $last_mime_type ) )
 				$last_mime_type = $mime_type;
 
 			if ( $last_mime_type != $mime_type )
-				http_concat_status_exit( 400 );
+				page_optimize_status_exit( 400 );
 		}
 
 		$stat = stat( $fullpath );
 		if ( false === $stat ) {
-			http_concat_status_exit( 500 );
+			page_optimize_status_exit( 500 );
 		}
 
 		if ( $stat['mtime'] > $last_modified )
@@ -112,7 +112,7 @@ function http_concat_build_output() {
 
 		$buf = file_get_contents( $fullpath );
 		if ( false === $buf ) {
-			http_concat_status_exit( 500 );
+			page_optimize_status_exit( 500 );
 		}
 
 		if ( 'text/css' == $mime_type ) {
@@ -184,13 +184,13 @@ function http_concat_build_output() {
 	return ob_get_clean();
 }
 
-function http_concat_status_exit( $status ) {
+function page_optimize_status_exit( $status ) {
 	http_response_code( $status );
 	exit;
 }
 
-function http_concat_get_mtype( $file ) {
-	global $http_concat_types;
+function page_optimize_get_mime_type( $file ) {
+	global $page_optimize_types;
 
 	$lastdot_pos = strrpos( $file, '.' );
 	if ( false === $lastdot_pos )
@@ -198,15 +198,15 @@ function http_concat_get_mtype( $file ) {
 
 	$ext = substr( $file, $lastdot_pos + 1 );
 
-	return isset( $http_concat_types[$ext] ) ? $http_concat_types[$ext] : false;
+	return isset( $page_optimize_types[$ext] ) ? $page_optimize_types[$ext] : false;
 }
 
-function http_concat_get_path( $uri ) {
+function page_optimize_get_path( $uri ) {
 	if ( ! strlen( $uri ) )
-		http_concat_status_exit( 400 );
+		page_optimize_status_exit( 400 );
 
 	if ( false !== strpos( $uri, '..' ) || false !== strpos( $uri, "\0" ) )
-		http_concat_status_exit( 400 );
+		page_optimize_status_exit( 400 );
 
 	if ( false !== strpos( $uri, '/wp-content/' ) && defined( 'WP_CONTENT_DIR' ) ) {
 		$files_root = WP_CONTENT_DIR;
