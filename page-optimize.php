@@ -1,10 +1,10 @@
 <?php
 /*
 Plugin Name: Page Optimize
-Plugin URI: http://wp-plugins.org/#
+Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.0.2
+Version: 0.0.3
 Author URI: http://automattic.com/
 */
 
