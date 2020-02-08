@@ -180,8 +180,7 @@ function page_optimize_settings_init() {
 add_action( 'admin_init', 'page_optimize_settings_init' );
 
 function page_optimize_add_plugin_settings_link( $plugin_action_links, $plugin_file = null ) {
-	$is_this_plugin = dirname( $plugin_file ) === basename( __DIR__ );
-	if ( ! $is_this_plugin ) {
+	if ( ! ( 'page-optimize/page-optimize.php' === $plugin_file && current_user_can( 'manage_options' ) ) ) {
 		return $plugin_action_links;
 	}
 
