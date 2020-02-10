@@ -5,16 +5,75 @@ $page_optimize_types = array(
 	'js' => 'application/javascript'
 );
 
+// TODO: Provide a settings button to clear the cache
+// TODO: Should we provide a default at all? Is this a reasonable default?
+
 function page_optimize_service_request() {
+	$use_cache = defined( 'PAGE_OPTIMIZE_CACHE_DIR' );
+	if (
+		$use_cache &&
+		! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) &&
+		// TODO: What are the best permissions to use here? 
+		! mkdir( PAGE_OPTIMIZE_CACHE_DIR )
+	) {
+		$use_cache = false;
+		error_log( "page-optimize: disabling cache. unable to create cache directory '" . PAGE_OPTIMIZE_CACHE_DIR . "'." );
+	}
+
+	// TODO: Can we cache with a hash of the file list rather than the complete URI? We might be able to share cached concats across pages
+	$cache_file = PAGE_OPTIMIZE_CACHE_DIR . '/' . md5( $_SERVER['REQUEST_URI'] );
+	$cache_file_meta = PAGE_OPTIMIZE_CACHE_DIR . '/meta-' . md5( $_SERVER['REQUEST_URI'] );
+
+	if ( file_exists( $cache_file ) ) {
+		if ( ( time() - filemtime( $cache_file ) ) > 2 * 3600 ) {
+			// file older than 2 hours, delete cache.
+			// TODO: Make max age configurable or get rid of max age and just rely on mtime
+			unlink( $cache_file );
+		} else {
+			if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
+				if ( strtotime( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) < filemtime( $cache_file ) ) {
+					header( 'HTTP/1.1 304 Not Modified' );
+					exit;
+				}
+			}
+
+			if ( file_exists( $cache_file_meta ) ) {
+				$meta = json_decode( file_get_contents( $cache_file_meta ) );
+				if ( null !== $meta && isset( $meta->headers ) ) {
+					foreach ( $meta->headers as $header ) {
+						header( $header );
+					}
+				}
+			}
+
+			$etag = '"' . md5( file_get_contents( $cache_file ) ) . '"';
+
+			ob_start( 'ob_gzhandler' );
+			header( 'x-http-concat: cached' );
+			header( 'Cache-Control: max-age=' . 31536000 );
+			header( 'ETag: ' . $etag );
+
+			echo file_get_contents( $cache_file ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
+			$output = ob_get_clean();
+			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
+			die();
+		}
+	}
+
 	$output = page_optimize_build_output();
-	$etag = '"' . md5( $output ) . '"';
+	// TODO: It seems insecure to indiscriminately cache and send headers. Cache only specific headers.
+	$meta   = array( 'headers' => headers_list() );
+
+	file_put_contents( $cache_file, $output );
+	file_put_contents( $cache_file_meta, json_encode( $meta ) );
 
 	// TODO: Do we still need this x-http-concat header?
 	header( 'x-http-concat: uncached' );
 	header( 'Cache-Control: max-age=' . 31536000 );
-	header( 'ETag: ' . $etag );
+	header( 'ETag: "' . md5( $output ) . '"' );
 
 	echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
+
 	die();
 }
 
