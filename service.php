@@ -10,28 +10,21 @@ $page_optimize_types = array(
 
 function page_optimize_service_request() {
 	$use_cache = defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR );
-	if ( $use_cache ) {
-		if (
-			is_dir( PAGE_OPTIMIZE_CACHE_DIR ) &&
-			( ! is_writable( PAGE_OPTIMIZE_CACHE_DIR ) || ! is_executable( PAGE_OPTIMIZE_CACHE_DIR ) )
-		) {
-			$caching_error_message = sprintf(
-				/* translators: a filesystem path to a directory */
-				__( "Disabling page-optimize cache. Unable to write to cache directory '%s'.", page_optimize_get_text_domain() ),
-				PAGE_OPTIMIZE_CACHE_DIR 
-			);
-		} elseif ( ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) && ! mkdir( PAGE_OPTIMIZE_CACHE_DIR, 0775 ) ) {
-			$caching_error_message = sprintf(
-				/* translators: a filesystem path to a directory */
-				__( "Disabling page-optimize cache. Unable to create cache directory '%s'.", page_optimize_get_text_domain() ),
-				PAGE_OPTIMIZE_CACHE_DIR 
-			);
-		}
-
-		if ( isset( $caching_error_message ) ) {
-			$use_cache = false;
-			error_log( $caching_error_message );
-		}
+	if ( $use_cache && ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) && ! mkdir( PAGE_OPTIMIZE_CACHE_DIR, 0775 ) ) {
+		$use_cache = false;
+		error_log( sprintf(
+			/* translators: a filesystem path to a directory */
+			__( "Disabling page-optimize cache. Unable to create cache directory '%s'.", page_optimize_get_text_domain() ),
+			PAGE_OPTIMIZE_CACHE_DIR 
+		) );
+	}
+	if ( $use_cache && ( ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) || ! is_writable( PAGE_OPTIMIZE_CACHE_DIR ) || ! is_executable( PAGE_OPTIMIZE_CACHE_DIR ) ) ) {
+		$use_cache = false;
+		error_log( sprintf(
+			/* translators: a filesystem path to a directory */
+			__( "Disabling page-optimize cache. Unable to write to cache directory '%s'.", page_optimize_get_text_domain() ),
+			PAGE_OPTIMIZE_CACHE_DIR 
+		) );
 	}
 
 	if ( $use_cache ) {
