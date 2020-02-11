@@ -17,6 +17,10 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	exit;
 }
 
+function page_optimize_get_text_domain() {
+	return 'page-optimize';
+}
+
 function page_optimize_should_concat_js() {
 	// Support query param for easy testing
 	if ( isset( $_GET['concat-js'] ) ) {
