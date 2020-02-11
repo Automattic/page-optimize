@@ -1,9 +1,5 @@
 <?php
 
-function page_optimize_get_text_domain() {
-	return 'page-optimize';
-}
-
 function page_optimize_settings_page() {
 	?>
 	<div class="wrap">
