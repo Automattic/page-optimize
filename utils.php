@@ -1,7 +1,7 @@
 <?php
 // TODO: Rename file according to traditional class file naming
 
-class Http_Concat_Utils {
+class Page_Optimize_Utils {
 	public static function is_internal_url( $test_url, $site_url ) {
 		$test_url_parsed = parse_url( $test_url );
 		$site_url_parsed = parse_url( $site_url );

@@ -198,7 +198,7 @@ function page_optimize_build_output() {
 			$dirpath = $subdir_path_prefix . dirname( $uri );
 
 			// url(relative/path/to/file) -> url(/absolute/and/not/relative/path/to/file)
-			$buf = Http_Concat_Utils::relative_path_replace( $buf, $dirpath );
+			$buf = Page_Optimize_Utils::relative_path_replace( $buf, $dirpath );
 
 			// AlphaImageLoader(...src='relative/path/to/file'...) -> AlphaImageLoader(...src='/absolute/path/to/file'...)
 			$buf = preg_replace(

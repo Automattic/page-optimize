@@ -5,7 +5,7 @@ if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
 	define( 'ALLOW_GZIP_COMPRESSION', true );
 }
 
-class Http_Concat_CSS_Concat extends WP_Styles {
+class Page_Optimize_CSS_Concat extends WP_Styles {
 	private $old_styles;
 	public $allow_gzip_compression;
 
@@ -79,7 +79,7 @@ class Http_Concat_CSS_Concat extends WP_Styles {
 			}
 
 			// Don't try to concat externally hosted scripts
-			$is_internal_url = Http_Concat_Utils::is_internal_url( $css_url, $siteurl );
+			$is_internal_url = Page_Optimize_Utils::is_internal_url( $css_url, $siteurl );
 			if ( $do_concat && ! $is_internal_url ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => External URL: %s -->\n", esc_html( $handle ), esc_url( $css_url ) );
@@ -89,7 +89,7 @@ class Http_Concat_CSS_Concat extends WP_Styles {
 
 			// Concat scripts that aren't outside ABSPATH
 			if ( $do_concat ) {
-				$css_realpath = Http_Concat_Utils::realpath( $css_url, $siteurl );
+				$css_realpath = Page_Optimize_Utils::realpath( $css_url, $siteurl );
 				if ( ! $css_realpath || ! file_exists( $css_realpath ) ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat CSS %s => Invalid Path %s -->\n", esc_html( $handle ), esc_html( $css_realpath ) );
@@ -186,7 +186,7 @@ class Http_Concat_CSS_Concat extends WP_Styles {
 			return $url;
 		}
 
-		$file = Http_Concat_Utils::realpath( $url, $siteurl );
+		$file = Page_Optimize_Utils::realpath( $url, $siteurl );
 
 		$mtime = false;
 		if ( file_exists( $file ) ) {
@@ -229,7 +229,7 @@ class Http_Concat_CSS_Concat extends WP_Styles {
 function css_concat_init() {
 	global $wp_styles;
 
-	$wp_styles = new Http_Concat_CSS_Concat( $wp_styles );
+	$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
 	$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
