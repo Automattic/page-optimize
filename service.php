@@ -61,7 +61,7 @@ function page_optimize_service_request() {
 				$etag = '"' . md5( file_get_contents( $cache_file ) ) . '"';
 
 				ob_start( 'ob_gzhandler' );
-					header( 'X-Page-Optimize: cached' );
+				header( 'X-Page-Optimize: cached' );
 				header( 'Cache-Control: max-age=' . 31536000 );
 				header( 'ETag: ' . $etag );
 
