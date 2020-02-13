@@ -35,6 +35,9 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$this->all_deps( $handles );
 
 		$stylesheet_group_index = 0;
+		// Merge CSS into a single file
+		$concat_group = 'concat';
+
 		foreach ( $this->to_do as $key => $handle ) {
 			$obj = $this->registered[ $handle ];
 			$obj->src = apply_filters( 'style_loader_src', $obj->src, $obj->handle );
@@ -112,11 +115,11 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					$media = 'all';
 				}
 
-				if ( ! isset( $stylesheets[ $stylesheet_group_index ] ) || ( isset( $stylesheets[ $stylesheet_group_index ] ) && ! is_array( $stylesheets[ $stylesheet_group_index ] ) ) ) {
-					$stylesheets[ $stylesheet_group_index ] = array();
+				if ( ! isset( $stylesheets[ $concat_group ] ) || ( isset( $stylesheets[ $concat_group ] ) && ! is_array( $stylesheets[ $concat_group ] ) ) ) {
+					$stylesheets[ $concat_group ] = array();
 				}
 
-				$stylesheets[ $stylesheet_group_index ][ $media ][ $handle ] = $css_url_parsed['path'];
+				$stylesheets[ $concat_group ][ $media ][ $handle ] = $css_url_parsed['path'];
 				$this->done[] = $handle;
 			} else {
 				$stylesheet_group_index ++;
@@ -164,10 +167,11 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 				}
 
 				$handles = array_keys( $css );
+				$css_id = "$media-css-" . md5( $href );
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					echo apply_filters( 'page_optimize_style_loader_tag', "<link data-handles='" . esc_attr( implode( ',', $handles ) ) . "' rel='stylesheet' id='$media-css-$idx' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
+					echo apply_filters( 'page_optimize_style_loader_tag', "<link data-handles='" . esc_attr( implode( ',', $handles ) ) . "' rel='stylesheet' id='$css_id' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
 				} else {
-					echo apply_filters( 'page_optimize_style_loader_tag', "<link rel='stylesheet' id='$media-css-$idx' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
+					echo apply_filters( 'page_optimize_style_loader_tag', "<link rel='stylesheet' id='$css_id' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
 				}
 				array_map( array( $this, 'print_inline_style' ), array_keys( $css ) );
 			}
