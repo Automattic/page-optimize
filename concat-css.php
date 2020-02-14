@@ -116,6 +116,9 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			foreach ( $exclude_list as $exclude ) {
 				if ( $do_concat && false !== strpos( $handle, $exclude ) ) {
 					$do_concat = false;
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						echo sprintf( "\n<!-- No Concat CSS %s => Excluded option -->\n", esc_html( $handle ) );
+					}
 				}
 			}
 
