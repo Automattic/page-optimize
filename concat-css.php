@@ -110,6 +110,14 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			}
 			$do_concat = apply_filters( 'css_do_concat', $do_concat, $handle );
 
+			// Skip concating CSS from exclusion list
+			$exclude_list = page_optimize_css_exclude_list();
+			foreach ( $exclude_list as $exclude ) {
+				if ( $do_concat && false !== strpos( $handle, $exclude ) ) {
+					$do_concat = false;
+				}
+			}
+
 			if ( true === $do_concat ) {
 				$media = $obj->args;
 				if ( empty( $media ) ) {
