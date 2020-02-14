@@ -236,6 +236,41 @@ function css_concat_init() {
 
 	$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
 	$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
+
+	// Add a `move-styles` query param to print the styles after the title element
+	if (
+		isset( $_GET['move-styles'] ) && '0' !== $_GET['move-styles'] &&
+		8 === has_action( 'wp_head', 'wp_print_styles' )
+	) {
+		error_log( 'Moving styles' );
+		remove_action( 'wp_head', 'wp_print_styles', 8 );
+		add_action( 'wp_head', 'wp_print_styles', 1 );
+	}
+
+	// Add a `move-styles-before-title` query param to print the styles before the title element.
+	// I wouldn't expect this to have different performance than `move-styles`, but I tried this
+	// after not seeing a performance improvement with `move-styles`.
+	if (
+		isset( $_GET['move-styles-before-title'] ) && '0' !== $_GET['move-styles-before-title'] &&
+		8 === has_action( 'wp_head', 'wp_print_styles' )
+	) {
+		error_log( 'Moving styles before title' );
+		remove_action( 'wp_head', 'wp_print_styles', 8 );
+		add_action( 'wp_head', 'wp_print_styles', 1 );
+		remove_action( 'wp_head', '_wp_render_title_tag', 1 );
+		add_action( 'wp_head', '_wp_render_title_tag', 1 );
+	}
+
+	// Add a `defer-emoji` query param to move emoji detection after style printing
+	if (
+		isset( $_GET['defer-emoji'] ) && '0' !== $_GET['defer-emoji'] &&
+		7 === has_action( 'wp_head', 'print_emoji_detection_script' ) &&
+		8 === has_action( 'wp_head', 'wp_print_styles' )
+	) {
+		error_log( 'Moving emoji detection to print after styles' );
+		remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+		add_action( 'wp_head', 'print_emoji_detection_script', 8 );
+	}
 }
 
 if ( page_optimize_should_concat_css() ) {
