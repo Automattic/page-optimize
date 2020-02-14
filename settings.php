@@ -76,7 +76,7 @@ function page_optimize_settings_field_css( $args ) {
 		<label>
 			<?php _e( 'Comma separated list of strings to exclude from CSS concating:', page_optimize_get_text_domain() ); ?>
 			<br />
-			<input type="input" id="page_optimize-js-exclude" name="page_optimize-css-exclude" value="<?php echo esc_html( get_option( 'page_optimize-css-exclude' ) ); ?>">
+			<input type="input" id="page_optimize-css-exclude" name="page_optimize-css-exclude" value="<?php echo esc_html( get_option( 'page_optimize-css-exclude' ) ); ?>">
 		</label>
 
 		<p><?php _e( 'CSS is minified.', page_optimize_get_text_domain() ); ?></p>
