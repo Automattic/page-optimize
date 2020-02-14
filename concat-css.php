@@ -37,6 +37,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$stylesheet_group_index = 0;
 		// Merge CSS into a single file
 		$concat_group = 'concat';
+		// Concat group on top (first array element gets processed earlier)
 		$stylesheets[ $concat_group ] = array();
 
 		foreach ( $this->to_do as $key => $handle ) {
