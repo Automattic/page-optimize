@@ -123,21 +123,7 @@ function page_optimize_settings_init() {
 			'description' => __( 'Comma separated list of strings to exclude from JS concating', page_optimize_get_text_domain() ),
 			'type' => 'string',
 			'default' => 'jquery,underscore,backbone', // WordPress core stuff, a lot of other plugins depend on it.
-			'sanitize_callback' => function ( $value ) {
-				if ( empty( $value ) ) {
-					return '';
-				}
-
-				$excluded_strings = explode( ',', sanitize_text_field( $value ) );
-				$sanitized_values = [];
-				foreach ( $excluded_strings as $excluded_string ) {
-					if ( ! empty( $excluded_string ) ) {
-						$sanitized_values[] = trim( $excluded_string );
-					}
-				}
-
-				return implode( ',', $sanitized_values );
-			}
+			'sanitize_callback' => 'page_optimize_sanitize_exclude_field',
 		)
 	);
 	register_setting(
@@ -156,21 +142,7 @@ function page_optimize_settings_init() {
 			'description' => __( 'Comma separated list of strings to exclude from CSS concating', page_optimize_get_text_domain() ),
 			'type' => 'string',
 			'default' => 'admin-bar,dashicons', // WordPress core stuff, a lot of other plugins depend on it.
-			'sanitize_callback' => function ( $value ) {
-				if ( empty( $value ) ) {
-					return '';
-				}
-
-				$excluded_strings = explode( ',', sanitize_text_field( $value ) );
-				$sanitized_values = [];
-				foreach ( $excluded_strings as $excluded_string ) {
-					if ( ! empty( $excluded_string ) ) {
-						$sanitized_values[] = trim( $excluded_string );
-					}
-				}
-
-				return implode( ',', $sanitized_values );
-			}
+			'sanitize_callback' => 'page_optimize_sanitize_exclude_field',
 		)
 	);
 
