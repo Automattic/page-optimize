@@ -36,7 +36,7 @@ function page_optimize_settings_field_js( $args ) {
 		</label>
 		<br />
 		<label>
-			<?php _e( 'Comma separated list of strings to exclude from concating:', page_optimize_get_text_domain() ); ?>
+			<?php _e( 'Comma separated list of strings to exclude from JS concating:', page_optimize_get_text_domain() ); ?>
 			<br />
 			<input type="input" id="page_optimize-js-exclude" name="page_optimize-js-exclude" value="<?php echo esc_html( get_option( 'page_optimize-js-exclude' ) ); ?>">
 		</label>
@@ -71,6 +71,12 @@ function page_optimize_settings_field_css( $args ) {
 		<label>
 			<input type="checkbox" id="page_optimize-css" name="page_optimize-css" value="1" <?php checked( get_option( 'page_optimize-css' ) ); ?>>
 			<?php _e( 'Concatenate styles', page_optimize_get_text_domain() ); ?>
+		</label>
+		<br />
+		<label>
+			<?php _e( 'Comma separated list of strings to exclude from CSS concating:', page_optimize_get_text_domain() ); ?>
+			<br />
+			<input type="input" id="page_optimize-js-exclude" name="page_optimize-css-exclude" value="<?php echo esc_html( get_option( 'page_optimize-css-exclude' ) ); ?>">
 		</label>
 
 		<p><?php _e( 'CSS is minified.', page_optimize_get_text_domain() ); ?></p>
@@ -114,7 +120,7 @@ function page_optimize_settings_init() {
 		'performance',
 		'page_optimize-js-exclude',
 		array(
-			'description' => __( 'Comma separated list of strings to exclude from concating', page_optimize_get_text_domain() ),
+			'description' => __( 'Comma separated list of strings to exclude from JS concating', page_optimize_get_text_domain() ),
 			'type' => 'string',
 			'default' => 'jquery,underscore,backbone', // WordPress core stuff, a lot of other plugins depend on it.
 			'sanitize_callback' => function ( $value ) {
@@ -141,6 +147,30 @@ function page_optimize_settings_init() {
 			'description' => __( 'CSS concatenation', page_optimize_get_text_domain() ),
 			'type' => 'boolean',
 			'default' => false,
+		)
+	);
+	register_setting(
+		'performance',
+		'page_optimize-css-exclude',
+		array(
+			'description' => __( 'Comma separated list of strings to exclude from CSS concating', page_optimize_get_text_domain() ),
+			'type' => 'string',
+			'default' => 'admin-bar,dashicons', // WordPress core stuff, a lot of other plugins depend on it.
+			'sanitize_callback' => function ( $value ) {
+				if ( empty( $value ) ) {
+					return '';
+				}
+
+				$excluded_strings = explode( ',', sanitize_text_field( $value ) );
+				$sanitized_values = [];
+				foreach ( $excluded_strings as $excluded_string ) {
+					if ( ! empty( $excluded_string ) ) {
+						$sanitized_values[] = trim( $excluded_string );
+					}
+				}
+
+				return implode( ',', $sanitized_values );
+			}
 		)
 	);
 
