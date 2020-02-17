@@ -52,21 +52,39 @@ function page_optimize_should_concat_css() {
 }
 
 function page_optimize_js_exclude_list() {
-	$exclude_string = get_option( 'page_optimize-js-exclude' );
-	if ( empty( $exclude_string ) ) {
+	$exclude_list = get_option( 'page_optimize-js-exclude' );
+	if ( false === $exclude_list ) {
+		// Use the default since the option is not set
+		return page_optimize_js_exclude_list_default();
+	}
+	if ( '' === $exclude_list ) {
 		return [];
 	}
 
-	return explode( ',', $exclude_string );
+	return explode( ',', $exclude_list );
+}
+
+function page_optimize_js_exclude_list_default() {
+	// WordPress core stuff, a lot of other plugins depend on it.
+	return [ 'jquery', 'underscore', 'backbone' ];
 }
 
 function page_optimize_css_exclude_list() {
-	$exclude_string = get_option( 'page_optimize-css-exclude' );
-	if ( empty( $exclude_string ) ) {
+	$exclude_list = get_option( 'page_optimize-css-exclude' );
+	if ( false === $exclude_list ) {
+		// Use the default since the option is not set
+		return page_optimize_css_exclude_list_default();
+	}
+	if ( '' === $exclude_list ) {
 		return [];
 	}
 
-	return explode( ',', $exclude_string );
+	return explode( ',', $exclude_list );
+}
+
+function page_optimize_css_exclude_list_default() {
+	// WordPress core stuff
+	return [ 'admin-bar', 'dashicons' ];
 }
 
 function page_optimize_sanitize_js_load_mode( $value ) {
