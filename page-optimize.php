@@ -83,7 +83,7 @@ function page_optimize_css_exclude_list() {
 }
 
 function page_optimize_css_exclude_list_default() {
-	// WordPress core stuff, a lot of other plugins depend on it.
+	// WordPress core stuff
 	return [ 'admin-bar', 'dashicons' ];
 }
 
