@@ -61,7 +61,7 @@ function page_optimize_js_exclude_list() {
 		return [];
 	}
 
-	return explode( ',', $exclude_string );
+	return explode( ',', $exclude_list );
 }
 
 function page_optimize_js_exclude_list_default() {
@@ -79,7 +79,7 @@ function page_optimize_css_exclude_list() {
 		return [];
 	}
 
-	return explode( ',', $exclude_string );
+	return explode( ',', $exclude_list );
 }
 
 function page_optimize_css_exclude_list_default() {
