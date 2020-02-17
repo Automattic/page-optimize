@@ -122,7 +122,7 @@ function page_optimize_settings_init() {
 		array(
 			'description' => __( 'Comma separated list of strings to exclude from JS concating', page_optimize_get_text_domain() ),
 			'type' => 'string',
-			'default' => 'jquery,underscore,backbone', // WordPress core stuff, a lot of other plugins depend on it.
+			'default' => implode( ',', page_optimize_js_exclude_list_default() ),
 			'sanitize_callback' => 'page_optimize_sanitize_exclude_field',
 		)
 	);
@@ -141,7 +141,7 @@ function page_optimize_settings_init() {
 		array(
 			'description' => __( 'Comma separated list of strings to exclude from CSS concating', page_optimize_get_text_domain() ),
 			'type' => 'string',
-			'default' => 'admin-bar,dashicons', // WordPress core stuff, a lot of other plugins depend on it.
+			'default' => implode( ',', page_optimize_css_exclude_list_default() ),
 			'sanitize_callback' => 'page_optimize_sanitize_exclude_field',
 		)
 	);
