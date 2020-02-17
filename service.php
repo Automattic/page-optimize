@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/dependency-path-mapping.php';
+
 $page_optimize_types = array(
 	'css' => 'text/css',
 	'js' => 'application/javascript'
@@ -279,6 +281,11 @@ function page_optimize_get_mime_type( $file ) {
 }
 
 function page_optimize_get_path( $uri ) {
+	static $dependency_path_mapping;
+	if ( empty( $dependency_path_mapping ) ) {
+		$dependency_path_mapping = new Page_Optimize_Dependency_Path_Mapping();
+	}
+
 	if ( ! strlen( $uri ) ) {
 		page_optimize_status_exit( 400 );
 	}
@@ -287,13 +294,9 @@ function page_optimize_get_path( $uri ) {
 		page_optimize_status_exit( 400 );
 	}
 
-	if ( false !== strpos( $uri, '/wp-content/' ) && defined( 'WP_CONTENT_DIR' ) ) {
-		$files_root = WP_CONTENT_DIR;
-		$replace_count = 1;
-		$uri = str_replace( '/wp-content/', '', $uri, $replace_count ); // Remove duplicate /wp-content/
-	} else {
-		$files_root = ABSPATH;
+	$path = $dependency_path_mapping->uri_path_to_fs_path( $uri );
+	if ( false === $path ) {
+		page_optimize_status_exit( 404 );
 	}
-
-	return $files_root . ( '/' != $uri[0] ? '/' : '' ) . $uri;
+	return $path;
 }

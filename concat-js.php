@@ -1,6 +1,7 @@
 <?php
 
-require_once( __DIR__ . '/utils.php' );
+require_once __DIR__ . '/dependency-path-mapping.php';
+require_once __DIR__ . '/utils.php';
 
 if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
 	define( 'ALLOW_GZIP_COMPRESSION', true );
@@ -9,6 +10,7 @@ if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
 class Page_Optimize_JS_Concat extends WP_Scripts {
 	private $old_scripts;
 	public $allow_gzip_compression;
+	private $dependency_path_mapping;
 
 	function __construct( $scripts ) {
 		if ( empty( $scripts ) || ! ( $scripts instanceof WP_Scripts ) ) {
@@ -26,6 +28,10 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			}
 			unset( $this->$key );
 		}
+
+		$this->dependency_path_mapping = new Page_Optimize_Dependency_Path_Mapping(
+			apply_filters( 'page_optimize_site_url', $this->base_url )
+		);
 	}
 
 	protected function has_inline_content( $handle ) {
@@ -96,19 +102,18 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			}
 
 			// Don't try to concat externally hosted scripts
-			$is_internal_url = Page_Optimize_Utils::is_internal_url( $js_url, $siteurl );
-			if ( $do_concat && ! $is_internal_url ) {
+			$is_internal_uri = $this->dependency_path_mapping->is_internal_uri( $js_url );
+			if ( $do_concat && ! $is_internal_uri ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => External URL: %s -->\n", esc_html( $handle ), esc_url( $js_url ) );
 				}
 				$do_concat = false;
 			}
 
-			// Concat and canonicalize the paths only for
-			// existing scripts that aren't outside ABSPATH
 			if ( $do_concat ) {
-				$js_realpath = Page_Optimize_Utils::realpath( $js_url, $siteurl );
-				if ( ! $js_realpath || ! file_exists( $js_realpath ) ) {
+				// Resolve paths and concat scripts that exist in the filesystem
+				$js_realpath = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $js_url );
+				if ( false === $js_realpath ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat JS %s => Invalid Path %s -->\n", esc_html( $handle ), esc_html( $js_realpath ) );
 					}
@@ -203,19 +208,11 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 				array_map( array( $this, 'print_extra_script' ), $js_array['handles'] );
 
 				if ( isset( $js_array['paths'] ) && count( $js_array['paths'] ) > 1 ) {
-					$paths = array_map( function ( $url ) {
-						$path = ABSPATH . $url;
+					$paths = array();
+					foreach ( $js_array['paths'] as $js_url ) {
+						$paths[] = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $js_url );
+					}
 
-						if ( ! file_exists( $path )
-							 && false !== strpos( $url, '/wp-content/' )
-							 && defined( 'WP_CONTENT_DIR' )
-						) {
-							$count = 1; // Only variables can be passed by reference.
-							$path = str_replace( '/wp-content', WP_CONTENT_DIR, $url, $count );
-						}
-
-						return $path;
-					}, $js_array['paths'] );
 					$mtime = max( array_map( 'filemtime', $paths ) );
 					$path_str = implode( ',', $js_array['paths'] ) . "?m=${mtime}";
 
@@ -275,7 +272,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			return $url;
 		}
 
-		$file = Page_Optimize_Utils::realpath( $url, $siteurl );
+		$file = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $url );
 
 		$mtime = false;
 		if ( file_exists( $file ) ) {
