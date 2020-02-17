@@ -146,6 +146,9 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			foreach ( $exclude_list as $exclude ) {
 				if ( $do_concat && false !== strpos( $handle, $exclude ) ) {
 					$do_concat = false;
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						echo sprintf( "\n<!-- No Concat JS %s => Excluded option -->\n", esc_html( $handle ) );
+					}
 				}
 			}
 

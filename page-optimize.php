@@ -60,6 +60,15 @@ function page_optimize_js_exclude_list() {
 	return explode( ',', $exclude_string );
 }
 
+function page_optimize_css_exclude_list() {
+	$exclude_string = get_option( 'page_optimize-css-exclude' );
+	if ( empty( $exclude_string ) ) {
+		return [];
+	}
+
+	return explode( ',', $exclude_string );
+}
+
 function page_optimize_sanitize_js_load_mode( $value ) {
 	switch ( $value ) {
 		case 'async':
@@ -71,6 +80,22 @@ function page_optimize_sanitize_js_load_mode( $value ) {
 	}
 
 	return $value;
+}
+
+function page_optimize_sanitize_exclude_field( $value ) {
+	if ( empty( $value ) ) {
+		return '';
+	}
+
+	$excluded_strings = explode( ',', sanitize_text_field( $value ) );
+	$sanitized_values = [];
+	foreach ( $excluded_strings as $excluded_string ) {
+		if ( ! empty( $excluded_string ) ) {
+			$sanitized_values[] = trim( $excluded_string );
+		}
+	}
+
+	return implode( ',', $sanitized_values );
 }
 
 require_once __DIR__ . '/settings.php';
