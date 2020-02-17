@@ -52,9 +52,13 @@ function page_optimize_should_concat_css() {
 }
 
 function page_optimize_js_exclude_list() {
-	$exclude_string = get_option( 'page_optimize-js-exclude' );
-	if ( empty( $exclude_string ) ) {
+	$exclude_list = get_option( 'page_optimize-js-exclude' );
+	if ( false === $exclude_list ) {
+		// Use the default since the option is not set
 		return page_optimize_js_exclude_list_default();
+	}
+	if ( '' === $exclude_list ) {
+		return [];
 	}
 
 	return explode( ',', $exclude_string );
@@ -66,9 +70,13 @@ function page_optimize_js_exclude_list_default() {
 }
 
 function page_optimize_css_exclude_list() {
-	$exclude_string = get_option( 'page_optimize-css-exclude' );
-	if ( empty( $exclude_string ) ) {
+	$exclude_list = get_option( 'page_optimize-css-exclude' );
+	if ( false === $exclude_list ) {
+		// Use the default since the option is not set
 		return page_optimize_css_exclude_list_default();
+	}
+	if ( '' === $exclude_list ) {
+		return [];
 	}
 
 	return explode( ',', $exclude_string );
