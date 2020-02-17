@@ -4,14 +4,14 @@ Tags: performance
 Requires at least: 5.3
 Tested up to: 5.3
 Requires PHP: 7.2
-Stable tag: 0.0.5
+Stable tag: 0.0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
- 
+
 Optimize pages for faster load and render in the browser.
- 
+
 == Description ==
- 
+
 This plugin supports a few features that may improve the performance of page loading and rendering in the browser:
 
 * Concatenate CSS
