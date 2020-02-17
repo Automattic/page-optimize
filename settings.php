@@ -17,7 +17,7 @@ function page_optimize_settings_page() {
 
 function page_optimize_settings_section() {
 	_e(
-		'Concat JavaScript and CSS for faster site loading and lower number of requests. Scripts are grouped by the original placement.',
+		'Concatenating JavaScript and CSS for faster site loading and lower number of requests. Scripts are grouped by the original placement.',
 		page_optimize_get_text_domain()
 	);
 	echo '<br />';
@@ -36,7 +36,7 @@ function page_optimize_settings_field_js( $args ) {
 		</label>
 		<br />
 		<label>
-			<?php _e( 'Comma separated list of strings to exclude from JS concating:', page_optimize_get_text_domain() ); ?>
+			<?php _e( 'Comma separated list of strings to exclude from JS concatenating:', page_optimize_get_text_domain() ); ?>
 			<br />
 			<input type="input" id="page_optimize-js-exclude" name="page_optimize-js-exclude" value="<?php echo esc_html( get_option( 'page_optimize-js-exclude' ) ); ?>">
 		</label>
@@ -60,7 +60,7 @@ function page_optimize_settings_field_js_load_mode( $args ) {
 			<?php _e( 'Defer', page_optimize_get_text_domain() ); ?>
 		</label>
 
-		<p><?php _e( 'You can choose the execution mode of the concat JavaScript. This option might break your site, so use carefully.', page_optimize_get_text_domain() ); ?></p>
+		<p><?php _e( 'You can choose the execution mode of the concatenated JavaScript. This option might break your site, so use carefully.', page_optimize_get_text_domain() ); ?></p>
 	</div>
 	<?php
 }
@@ -120,7 +120,7 @@ function page_optimize_settings_init() {
 		'performance',
 		'page_optimize-js-exclude',
 		array(
-			'description' => __( 'Comma separated list of strings to exclude from JS concating', page_optimize_get_text_domain() ),
+			'description' => __( 'Comma separated list of strings to exclude from JS concatenating', page_optimize_get_text_domain() ),
 			'type' => 'string',
 			'default' => 'jquery,underscore,backbone', // WordPress core stuff, a lot of other plugins depend on it.
 			'sanitize_callback' => 'page_optimize_sanitize_exclude_field',
