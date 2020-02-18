@@ -82,7 +82,7 @@ function page_optimize_js_exclude_list() {
 
 function page_optimize_js_exclude_list_default() {
 	// WordPress core stuff, a lot of other plugins depend on it.
-	return [ 'jquery', 'underscore', 'backbone' ];
+	return [ 'jquery', 'jquery-core', 'underscore', 'backbone' ];
 }
 
 function page_optimize_css_exclude_list() {

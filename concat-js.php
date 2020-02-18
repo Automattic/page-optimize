@@ -144,7 +144,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			// Skip concating scripts from exclusion list
 			$exclude_list = page_optimize_js_exclude_list();
 			foreach ( $exclude_list as $exclude ) {
-				if ( $do_concat && false !== strpos( $handle, $exclude ) ) {
+				if ( $do_concat && $handle === $exclude ) {
 					$do_concat = false;
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat JS %s => Excluded option -->\n", esc_html( $handle ) );

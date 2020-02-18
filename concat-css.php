@@ -106,7 +106,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			// Skip concating CSS from exclusion list
 			$exclude_list = page_optimize_css_exclude_list();
 			foreach ( $exclude_list as $exclude ) {
-				if ( $do_concat && false !== strpos( $handle, $exclude ) ) {
+				if ( $do_concat && $handle === $exclude ) {
 					$do_concat = false;
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat CSS %s => Excluded option -->\n", esc_html( $handle ) );
