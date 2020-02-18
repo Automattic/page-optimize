@@ -31,7 +31,7 @@ function page_optimize_should_concat_js() {
 		return $_GET['concat-js'] !== '0';
 	}
 
-	return !! get_option( 'page_optimize-js', true );
+	return !! get_option( 'page_optimize-js', page_optimize_js_default() );
 }
 
 // TODO: Support JS load mode regardless of whether concat is enabled
@@ -40,7 +40,7 @@ function page_optimize_load_mode_js() {
 	if ( ! empty( $_GET['load-mode-js'] ) ) {
 		$load_mode = page_optimize_sanitize_js_load_mode( $_GET['load-mode-js'] );
 	} else {
-		$load_mode = page_optimize_sanitize_js_load_mode( get_option( 'page_optimize-load-mode', 'defer' ) );
+		$load_mode = page_optimize_sanitize_js_load_mode( get_option( 'page_optimize-load-mode', page_optimize_js_load_mode_default() ) );
 	}
 
 	return $load_mode;
@@ -52,7 +52,19 @@ function page_optimize_should_concat_css() {
 		return $_GET['concat-css'] !== '0';
 	}
 
-	return !! get_option( 'page_optimize-css', true );
+	return !! get_option( 'page_optimize-css', page_optimize_css_default() );
+}
+
+function page_optimize_js_default() {
+	return true;
+}
+
+function page_optimize_css_default() {
+	return true;
+}
+
+function page_optimize_js_load_mode_default() {
+	return 'defer';
 }
 
 function page_optimize_js_exclude_list() {
