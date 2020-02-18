@@ -47,6 +47,21 @@ function page_optimize_cache_cleanup() {
 	}
 }
 
+// Unschedule cache cleanup, and purge cache directory
+function page_optimize_deactivate() {
+	// Purge cache dir if it exists
+	if ( is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
+		array_map(
+			'unlink',
+			glob( PAGE_OPTIMIZE_CACHE_DIR . '/*.*' )
+		);
+		rmdir( PAGE_OPTIMIZE_CACHE_DIR );
+	}
+
+	wp_clear_scheduled_hook( 'page_optimize_cache_cleanup' );
+}
+register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
+
 function page_optimize_get_text_domain() {
 	return 'page-optimize';
 }
