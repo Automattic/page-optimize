@@ -161,7 +161,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 						return $path;
 					}, $css );
 					$mtime = max( array_map( 'filemtime', $paths ) );
-					$path_str = implode( $css, ',' ) . "?m={$mtime}";
+					$path_str = implode( ',', $css ) . "?m={$mtime}";
 
 					if ( $this->allow_gzip_compression ) {
 						$path_64 = base64_encode( gzcompress( $path_str ) );
