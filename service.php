@@ -33,39 +33,33 @@ function page_optimize_service_request() {
 		$cache_file_meta = PAGE_OPTIMIZE_CACHE_DIR . "/meta-$request_uri_hash";
 
 		if ( file_exists( $cache_file ) ) {
-			if ( ( time() - filemtime( $cache_file ) ) > 2 * 3600 ) {
-				// file older than 2 hours, delete cache.
-				// TODO: Make max age configurable or get rid of max age and just rely on mtime
-				unlink( $cache_file );
-			} else {
-				if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
-					if ( strtotime( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) < filemtime( $cache_file ) ) {
-						header( 'HTTP/1.1 304 Not Modified' );
-						exit;
-					}
+			if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
+				if ( strtotime( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) < filemtime( $cache_file ) ) {
+					header( 'HTTP/1.1 304 Not Modified' );
+					exit;
 				}
-
-				if ( file_exists( $cache_file_meta ) ) {
-					$meta = json_decode( file_get_contents( $cache_file_meta ) );
-					if ( null !== $meta && isset( $meta->headers ) ) {
-						foreach ( $meta->headers as $header ) {
-							header( $header );
-						}
-					}
-				}
-
-				$etag = '"' . md5( file_get_contents( $cache_file ) ) . '"';
-
-				ob_start( 'ob_gzhandler' );
-				header( 'X-Page-Optimize: cached' );
-				header( 'Cache-Control: max-age=' . 31536000 );
-				header( 'ETag: ' . $etag );
-
-				echo file_get_contents( $cache_file ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
-				$output = ob_get_clean();
-				echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
-				die();
 			}
+
+			if ( file_exists( $cache_file_meta ) ) {
+				$meta = json_decode( file_get_contents( $cache_file_meta ) );
+				if ( null !== $meta && isset( $meta->headers ) ) {
+					foreach ( $meta->headers as $header ) {
+						header( $header );
+					}
+				}
+			}
+
+			$etag = '"' . md5( file_get_contents( $cache_file ) ) . '"';
+
+			ob_start( 'ob_gzhandler' );
+			header( 'X-Page-Optimize: cached' );
+			header( 'Cache-Control: max-age=' . 31536000 );
+			header( 'ETag: ' . $etag );
+
+			echo file_get_contents( $cache_file ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
+			$output = ob_get_clean();
+			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
+			die();
 		}
 	}
 

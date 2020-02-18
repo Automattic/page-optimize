@@ -21,6 +21,32 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	exit;
 }
 
+if( ! wp_next_scheduled( 'page_optimize_cache_cleanup' ) ) {
+	wp_schedule_event( time(), 'daily', 'page_optimize_cache_cleanup' );
+}
+
+function page_optimize_cache_cleanup() {
+	if ( ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
+		return;
+	}
+
+	// Grab all files in the cache directory
+	$cache_files = array_filter(
+		scandir( PAGE_OPTIMIZE_CACHE_DIR ),
+		function ( $file ) {
+			return is_file( PAGE_OPTIMIZE_CACHE_DIR . "/$file" );
+		}
+	);
+
+	// Cleanup all files older than 24 hours
+	foreach ( $cache_files as $cache_file ) {
+		$cache_file_full_path = PAGE_OPTIMIZE_CACHE_DIR . "/$cache_file";
+		if ( ( time() - DAY_IN_SECONDS ) > filemtime( $cache_file_full_path ) ) {
+			unlink( $cache_file_full_path );
+		}
+	}
+}
+
 function page_optimize_get_text_domain() {
 	return 'page-optimize';
 }
