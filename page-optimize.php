@@ -8,9 +8,10 @@ Version: 0.1.3
 Author URI: http://automattic.com/
 */
 
-// TODO: Allow overriding with an option
 // Default cache directory
-define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
+if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
+	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
+}
 
 // TODO: Copy tests from nginx-http-concat and/or write them
 
@@ -50,13 +51,8 @@ function page_optimize_cache_cleanup() {
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
 	// Purge cache dir if it exists
-	if ( is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
-		array_map(
-			'unlink',
-			glob( PAGE_OPTIMIZE_CACHE_DIR . '/*.*' )
-		);
-		rmdir( PAGE_OPTIMIZE_CACHE_DIR );
-	}
+	$wp_filesystem_direct = WP_Filesystem_Direct();
+	$wp_filesystem_direct->rmdir( PAGE_OPTIMIZE_CACHE_DIR, true );
 
 	wp_clear_scheduled_hook( 'page_optimize_cache_cleanup' );
 }
