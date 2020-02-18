@@ -29,24 +29,28 @@ function page_optimize_settings_section() {
 
 function page_optimize_settings_field_js( $args ) {
 	?>
-	<div>
+	<fieldset>
 		<label>
 			<input type="checkbox" id="page_optimize-js" name="page_optimize-js" value="1" <?php checked( get_option( 'page_optimize-js' ) ); ?>>
 			<?php _e( 'Concatenate scripts', page_optimize_get_text_domain() ); ?>
 		</label>
-		<br />
-		<label>
+		<br>
+		<label for="page_optimize-js-exclude">
 			<?php _e( 'Comma separated list of strings to exclude from JS concatenating:', page_optimize_get_text_domain() ); ?>
-			<br />
-			<input type="input" id="page_optimize-js-exclude" name="page_optimize-js-exclude" value="<?php echo esc_html( get_option( 'page_optimize-js-exclude' ) ); ?>">
 		</label>
-	</div>
+		<br>
+		<input type="text"
+			id="page_optimize-js-exclude"
+			name="page_optimize-js-exclude"
+			value="<?php echo esc_html( get_option( 'page_optimize-js-exclude' ) ); ?>"
+			class="regular-text ltr">
+	</fieldset>
 	<?php
 }
 
 function page_optimize_settings_field_js_load_mode( $args ) {
 	?>
-	<div>
+	<fieldset>
 		<label>
 			<input type="radio" name="page_optimize-load-mode" value="" <?php checked( '', get_option( 'page_optimize-load-mode' ), true ); ?>>
 			<?php _e( 'None', page_optimize_get_text_domain() ); ?>
@@ -60,27 +64,31 @@ function page_optimize_settings_field_js_load_mode( $args ) {
 			<?php _e( 'Defer', page_optimize_get_text_domain() ); ?>
 		</label>
 
-		<p><?php _e( 'You can choose the execution mode of the concatenated JavaScript. This option might break your site, so use carefully.', page_optimize_get_text_domain() ); ?></p>
-	</div>
+		<p class="description">
+			<?php _e( 'You can choose the execution mode of the concatenated JavaScript. This option might break your site, so use carefully.', page_optimize_get_text_domain() ); ?>
+		</p>
+	</fieldset>
 	<?php
 }
 
 function page_optimize_settings_field_css( $args ) {
 	?>
-	<div>
+	<fieldset>
 		<label>
 			<input type="checkbox" id="page_optimize-css" name="page_optimize-css" value="1" <?php checked( get_option( 'page_optimize-css' ) ); ?>>
-			<?php _e( 'Concatenate styles', page_optimize_get_text_domain() ); ?>
+			<?php _e( 'Concatenate and minify styles', page_optimize_get_text_domain() ); ?>
 		</label>
-		<br />
-		<label>
-			<?php _e( 'Comma separated list of strings to exclude from CSS concating:', page_optimize_get_text_domain() ); ?>
-			<br />
-			<input type="input" id="page_optimize-css-exclude" name="page_optimize-css-exclude" value="<?php echo esc_html( get_option( 'page_optimize-css-exclude' ) ); ?>">
+		<br>
+		<label for="page_optimize-css-exclude">
+			<?php _e( 'Comma separated list of strings to exclude from CSS concatenating:', page_optimize_get_text_domain() ); ?>
 		</label>
-
-		<p><?php _e( 'CSS is minified.', page_optimize_get_text_domain() ); ?></p>
-	</div>
+		<br>
+		<input type="text"
+			id="page_optimize-css-exclude"
+			name="page_optimize-css-exclude"
+			value="<?php echo esc_html( get_option( 'page_optimize-css-exclude' ) ); ?>"
+			class="regular-text ltr">
+	</fieldset>
 	<?php
 }
 
