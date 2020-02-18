@@ -50,13 +50,23 @@ function page_optimize_cache_cleanup() {
 
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
-	// Purge cache dir if it exists
-	$wp_filesystem_direct = WP_Filesystem_Direct();
-	$wp_filesystem_direct->rmdir( PAGE_OPTIMIZE_CACHE_DIR, true );
+	if ( is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
+		page_optimize_remove_directory( PAGE_OPTIMIZE_CACHE_DIR );
+	}
 
 	wp_clear_scheduled_hook( 'page_optimize_cache_cleanup' );
 }
 register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
+
+function page_optimize_remove_directory( $dir ) {
+	$files = array_diff( scandir( $dir ), array( '.', '..' ) );
+	foreach ( $files as $file ) {
+		$file_full_path = "$dir/$file";
+		( is_dir( $file_full_path ) ) ? page_optimize_remove_directory( $file_full_path ) : unlink( $file_full_path );
+	}
+
+	return rmdir( $dir );
+}
 
 function page_optimize_get_text_domain() {
 	return 'page-optimize';
