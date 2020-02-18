@@ -12,15 +12,6 @@ Author URI: http://automattic.com/
 // Default cache directory
 define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
 
-function page_optimize_activate() {
-	update_option( 'page_optimize-js', true );
-	update_option( 'page_optimize-js-exclude', page_optimize_js_exclude_list() );
-	update_option( 'page_optimize-load-mode', 'defer' );
-	update_option( 'page_optimize-css', true );
-	update_option( 'page_optimize-css-exclude', page_optimize_css_exclude_list() );
-}
-register_activation_hook( __FILE__, 'page_optimize_activate' );
-
 // TODO: Copy tests from nginx-http-concat and/or write them
 
 // TODO: Make concat URL dir configurable
@@ -40,7 +31,7 @@ function page_optimize_should_concat_js() {
 		return $_GET['concat-js'] !== '0';
 	}
 
-	return !! get_option( 'page_optimize-js' );
+	return !! get_option( 'page_optimize-js', true );
 }
 
 // TODO: Support JS load mode regardless of whether concat is enabled
@@ -49,7 +40,7 @@ function page_optimize_load_mode_js() {
 	if ( ! empty( $_GET['load-mode-js'] ) ) {
 		$load_mode = page_optimize_sanitize_js_load_mode( $_GET['load-mode-js'] );
 	} else {
-		$load_mode = page_optimize_sanitize_js_load_mode( get_option( 'page_optimize-load-mode' ) );
+		$load_mode = page_optimize_sanitize_js_load_mode( get_option( 'page_optimize-load-mode', 'defer' ) );
 	}
 
 	return $load_mode;
@@ -61,7 +52,7 @@ function page_optimize_should_concat_css() {
 		return $_GET['concat-css'] !== '0';
 	}
 
-	return !! get_option( 'page_optimize-css' );
+	return !! get_option( 'page_optimize-css', true );
 }
 
 function page_optimize_js_exclude_list() {
