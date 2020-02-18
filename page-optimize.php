@@ -4,13 +4,22 @@ Plugin Name: Page Optimize
 Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.1.0
+Version: 0.1.1
 Author URI: http://automattic.com/
 */
 
 // TODO: Allow overriding with an option
 // Default cache directory
 define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
+
+function page_optimize_activate() {
+	update_option( 'page_optimize-js', true );
+	update_option( 'page_optimize-js-exclude', page_optimize_js_exclude_list() );
+	update_option( 'page_optimize-load-mode', 'defer' );
+	update_option( 'page_optimize-css', true );
+	update_option( 'page_optimize-css-exclude', page_optimize_css_exclude_list() );
+}
+register_activation_hook( __FILE__, 'page_optimize_activate' );
 
 // TODO: Copy tests from nginx-http-concat and/or write them
 
