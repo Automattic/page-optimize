@@ -128,10 +128,6 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					$media = 'all';
 				}
 
-				if ( ! isset( $stylesheets[ $concat_group ] ) || ( isset( $stylesheets[ $concat_group ] ) && ! is_array( $stylesheets[ $concat_group ] ) ) ) {
-					$stylesheets[ $concat_group ] = array();
-				}
-
 				$stylesheets[ $concat_group ][ $media ][ $handle ] = $css_url_parsed['path'];
 				$this->done[] = $handle;
 			} else {
