@@ -106,7 +106,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			// Skip concating CSS from exclusion list
 			$exclude_list = page_optimize_css_exclude_list();
 			foreach ( $exclude_list as $exclude ) {
-				if ( $do_concat && false !== strpos( $handle, $exclude ) ) {
+				if ( $do_concat && $handle === $exclude ) {
 					$do_concat = false;
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat CSS %s => Excluded option -->\n", esc_html( $handle ) );
@@ -161,7 +161,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 						return $path;
 					}, $css );
 					$mtime = max( array_map( 'filemtime', $paths ) );
-					$path_str = implode( $css, ',' ) . "?m={$mtime}";
+					$path_str = implode( ',', $css ) . "?m={$mtime}";
 
 					if ( $this->allow_gzip_compression ) {
 						$path_64 = base64_encode( gzcompress( $path_str ) );

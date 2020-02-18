@@ -111,7 +111,7 @@ function page_optimize_settings_init() {
 		array(
 			'description' => __( 'JavaScript concatenation', page_optimize_get_text_domain() ),
 			'type' => 'boolean',
-			'default' => false,
+			'default' => page_optimize_js_default(),
 		)
 	);
 	register_setting(
@@ -120,7 +120,7 @@ function page_optimize_settings_init() {
 		array(
 			'description' => __( 'Non-critical script execution mode', page_optimize_get_text_domain() ),
 			'type' => 'string',
-			'default' => 'none',
+			'default' => page_optimize_js_load_mode_default(),
 			'sanitize_callback' => 'page_optimize_sanitize_js_load_mode',
 		)
 	);
@@ -140,7 +140,7 @@ function page_optimize_settings_init() {
 		array(
 			'description' => __( 'CSS concatenation', page_optimize_get_text_domain() ),
 			'type' => 'boolean',
-			'default' => false,
+			'default' => page_optimize_css_default(),
 		)
 	);
 	register_setting(
