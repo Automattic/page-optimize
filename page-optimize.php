@@ -13,7 +13,7 @@ if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
 	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
 }
 
-define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP', 'page_optimize_cron_cache_cleanup' );
+define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanup' );
 
 // TODO: Copy tests from nginx-http-concat and/or write them
 
@@ -43,13 +43,13 @@ function page_optimize_cache_cleanup( $age = DAY_IN_SECONDS ) {
 		}
 	}
 }
-add_action( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP, 'page_optimize_cache_cleanup' );
+add_action( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, 'page_optimize_cache_cleanup' );
 
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
 	page_optimize_cache_cleanup( 0 );
 
-	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP );
+	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
 }
 
 register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
@@ -173,8 +173,8 @@ function page_optimize_init() {
 	}
 
 	// Schedule cache cleanup on init
-	if( ! wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP ) ) {
-		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP );
+	if( ! wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB ) ) {
+		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
 	}
 
 	require_once __DIR__ . '/settings.php';
