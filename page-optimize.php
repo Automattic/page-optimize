@@ -4,7 +4,7 @@ Plugin Name: Page Optimize
 Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.1.2
+Version: 0.1.3
 Author URI: http://automattic.com/
 */
 
@@ -132,9 +132,18 @@ function page_optimize_sanitize_exclude_field( $value ) {
 	return implode( ',', $sanitized_values );
 }
 
-require_once __DIR__ . '/settings.php';
-require_once __DIR__ . '/concat-css.php';
-require_once __DIR__ . '/concat-js.php';
+function page_optimize_init() {
+	// Bail if we're in customizer
+	global $wp_customize;
+	if ( isset( $wp_customize ) ) {
+		return;
+	}
 
-// Disable Jetpack photon-cdn for static JS/CSS
-add_filter( 'jetpack_force_disable_site_accelerator', '__return_true' );
+	require_once __DIR__ . '/settings.php';
+	require_once __DIR__ . '/concat-css.php';
+	require_once __DIR__ . '/concat-js.php';
+
+	// Disable Jetpack photon-cdn for static JS/CSS
+	add_filter( 'jetpack_force_disable_site_accelerator', '__return_true' );
+}
+add_action( 'plugins_loaded', 'page_optimize_init' );
