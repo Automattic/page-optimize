@@ -246,6 +246,6 @@ function css_concat_init() {
 	$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-if ( page_optimize_should_concat_css() ) {
+if ( ! is_admin() && page_optimize_should_concat_css() ) {
 	add_action( 'init', 'css_concat_init' );
 }

@@ -132,18 +132,9 @@ function page_optimize_sanitize_exclude_field( $value ) {
 	return implode( ',', $sanitized_values );
 }
 
-function page_optimize_init() {
-	// Bail if we're in customizer
-	global $wp_customize;
-	if ( isset( $wp_customize ) ) {
-		return;
-	}
+require_once __DIR__ . '/settings.php';
+require_once __DIR__ . '/concat-css.php';
+require_once __DIR__ . '/concat-js.php';
 
-	require_once __DIR__ . '/settings.php';
-	require_once __DIR__ . '/concat-css.php';
-	require_once __DIR__ . '/concat-js.php';
-
-	// Disable Jetpack photon-cdn for static JS/CSS
-	add_filter( 'jetpack_force_disable_site_accelerator', '__return_true' );
-}
-add_action( 'plugins_loaded', 'page_optimize_init' );
+// Disable Jetpack photon-cdn for static JS/CSS
+add_filter( 'jetpack_force_disable_site_accelerator', '__return_true' );
