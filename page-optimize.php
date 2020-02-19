@@ -22,51 +22,34 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	exit;
 }
 
-if( ! wp_next_scheduled( 'page_optimize_cache_cleanup' ) ) {
-	wp_schedule_event( time(), 'daily', 'page_optimize_cache_cleanup' );
-}
-
 function page_optimize_cache_cleanup() {
 	if ( ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
 		return;
 	}
 
 	// Grab all files in the cache directory
-	$cache_files = array_filter(
-		scandir( PAGE_OPTIMIZE_CACHE_DIR ),
-		function ( $file ) {
-			return is_file( PAGE_OPTIMIZE_CACHE_DIR . "/$file" );
-		}
-	);
+	$cache_files = glob( PAGE_OPTIMIZE_CACHE_DIR . '/page-optimize-cache-*' );
 
 	// Cleanup all files older than 24 hours
 	foreach ( $cache_files as $cache_file ) {
-		$cache_file_full_path = PAGE_OPTIMIZE_CACHE_DIR . "/$cache_file";
-		if ( ( time() - DAY_IN_SECONDS ) > filemtime( $cache_file_full_path ) ) {
-			unlink( $cache_file_full_path );
+		if ( ! is_file( $cache_file ) ) {
+			continue;
+		}
+
+		if ( ( time() - DAY_IN_SECONDS ) > filemtime( $cache_file ) ) {
+			unlink( $cache_file );
 		}
 	}
 }
 
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
-	if ( is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
-		page_optimize_remove_directory( PAGE_OPTIMIZE_CACHE_DIR );
-	}
+	page_optimize_cache_cleanup();
 
 	wp_clear_scheduled_hook( 'page_optimize_cache_cleanup' );
 }
+
 register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
-
-function page_optimize_remove_directory( $dir ) {
-	$files = array_diff( scandir( $dir ), array( '.', '..' ) );
-	foreach ( $files as $file ) {
-		$file_full_path = "$dir/$file";
-		( is_dir( $file_full_path ) ) ? page_optimize_remove_directory( $file_full_path ) : unlink( $file_full_path );
-	}
-
-	return rmdir( $dir );
-}
 
 function page_optimize_get_text_domain() {
 	return 'page-optimize';
@@ -184,6 +167,11 @@ function page_optimize_init() {
 	global $wp_customize;
 	if ( isset( $wp_customize ) ) {
 		return;
+	}
+
+	// Schedule cache cleanup on init
+	if( ! wp_next_scheduled( 'page_optimize_cache_cleanup' ) ) {
+		wp_schedule_event( time(), 'daily', 'page_optimize_cache_cleanup' );
 	}
 
 	require_once __DIR__ . '/settings.php';

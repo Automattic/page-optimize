@@ -29,8 +29,8 @@ function page_optimize_service_request() {
 
 	if ( $use_cache ) {
 		$request_uri_hash = md5( $_SERVER['REQUEST_URI'] );
-		$cache_file = PAGE_OPTIMIZE_CACHE_DIR . "/$request_uri_hash";
-		$cache_file_meta = PAGE_OPTIMIZE_CACHE_DIR . "/meta-$request_uri_hash";
+		$cache_file = PAGE_OPTIMIZE_CACHE_DIR . "/page-optimize-cache-$request_uri_hash";
+		$cache_file_meta = PAGE_OPTIMIZE_CACHE_DIR . "/page-optimize-cache-meta-$request_uri_hash";
 
 		if ( file_exists( $cache_file ) ) {
 			if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
