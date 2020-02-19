@@ -13,6 +13,8 @@ if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
 	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
 }
 
+define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP', 'page_optimize_cron_cache_cleanup' );
+
 // TODO: Copy tests from nginx-http-concat and/or write them
 
 // TODO: Make concat URL dir configurable
@@ -22,7 +24,7 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	exit;
 }
 
-function page_optimize_cache_cleanup() {
+function page_optimize_cache_cleanup( $age = DAY_IN_SECONDS ) {
 	if ( ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
 		return;
 	}
@@ -36,17 +38,18 @@ function page_optimize_cache_cleanup() {
 			continue;
 		}
 
-		if ( ( time() - DAY_IN_SECONDS ) > filemtime( $cache_file ) ) {
+		if ( ( time() - $age ) > filemtime( $cache_file ) ) {
 			unlink( $cache_file );
 		}
 	}
 }
+add_action( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP, 'page_optimize_cache_cleanup' );
 
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
-	page_optimize_cache_cleanup();
+	page_optimize_cache_cleanup( 0 );
 
-	wp_clear_scheduled_hook( 'page_optimize_cache_cleanup' );
+	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP );
 }
 
 register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
@@ -170,8 +173,8 @@ function page_optimize_init() {
 	}
 
 	// Schedule cache cleanup on init
-	if( ! wp_next_scheduled( 'page_optimize_cache_cleanup' ) ) {
-		wp_schedule_event( time(), 'daily', 'page_optimize_cache_cleanup' );
+	if( ! wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP ) ) {
+		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP );
 	}
 
 	require_once __DIR__ . '/settings.php';
