@@ -24,7 +24,7 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	exit;
 }
 
-function page_optimize_cache_cleanup( $age = DAY_IN_SECONDS ) {
+function page_optimize_cache_cleanup( $file_age = DAY_IN_SECONDS ) {
 	if ( ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
 		return;
 	}
@@ -38,7 +38,7 @@ function page_optimize_cache_cleanup( $age = DAY_IN_SECONDS ) {
 			continue;
 		}
 
-		if ( ( time() - $age ) > filemtime( $cache_file ) ) {
+		if ( ( time() - $file_age ) > filemtime( $cache_file ) ) {
 			unlink( $cache_file );
 		}
 	}
@@ -47,7 +47,7 @@ add_action( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, 'page_optimize_cache_cleanup' 
 
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
-	page_optimize_cache_cleanup( 0 );
+	page_optimize_cache_cleanup( $file_age = 0 );
 
 	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
 }
