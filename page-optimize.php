@@ -4,13 +4,16 @@ Plugin Name: Page Optimize
 Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.1.3
+Version: 0.2.0
 Author URI: http://automattic.com/
 */
 
-// TODO: Allow overriding with an option
 // Default cache directory
-define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
+if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
+	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
+}
+
+define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanup' );
 
 // TODO: Copy tests from nginx-http-concat and/or write them
 
@@ -20,6 +23,36 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	page_optimize_service_request();
 	exit;
 }
+
+function page_optimize_cache_cleanup( $file_age = DAY_IN_SECONDS ) {
+	if ( ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
+		return;
+	}
+
+	// Grab all files in the cache directory
+	$cache_files = glob( PAGE_OPTIMIZE_CACHE_DIR . '/page-optimize-cache-*' );
+
+	// Cleanup all files older than 24 hours
+	foreach ( $cache_files as $cache_file ) {
+		if ( ! is_file( $cache_file ) ) {
+			continue;
+		}
+
+		if ( ( time() - $file_age ) > filemtime( $cache_file ) ) {
+			unlink( $cache_file );
+		}
+	}
+}
+add_action( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, 'page_optimize_cache_cleanup' );
+
+// Unschedule cache cleanup, and purge cache directory
+function page_optimize_deactivate() {
+	page_optimize_cache_cleanup( 0 /* max file age */ );
+
+	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
+}
+
+register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
 
 function page_optimize_get_text_domain() {
 	return 'page-optimize';
@@ -137,6 +170,11 @@ function page_optimize_init() {
 	global $wp_customize;
 	if ( isset( $wp_customize ) ) {
 		return;
+	}
+
+	// Schedule cache cleanup on init
+	if( ! wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB ) ) {
+		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
 	}
 
 	require_once __DIR__ . '/settings.php';
