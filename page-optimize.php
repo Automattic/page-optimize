@@ -53,6 +53,21 @@ function page_optimize_deactivate() {
 }
 register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
 
+function page_optimize_uninstall() {
+	// Run cleanup on uninstall. You can uninstall an active plugin w/o deactivation.
+	page_optimize_deactivate();
+
+	// JS
+	delete_option( 'page_optimize-js' );
+	delete_option( 'page_optimize-load-mode' );
+	delete_option( 'page_optimize-js-exclude' );
+	// CSS
+	delete_option( 'page_optimize-css' );
+	delete_option( 'page_optimize-css-exclude' );
+
+}
+register_uninstall_hook( __FILE__, 'page_optimize_uninstall' );
+
 function page_optimize_get_text_domain() {
 	return 'page-optimize';
 }
