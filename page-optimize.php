@@ -4,7 +4,7 @@ Plugin Name: Page Optimize
 Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.2.0
+Version: 0.2.1
 Author URI: http://automattic.com/
 */
 
@@ -51,8 +51,22 @@ function page_optimize_deactivate() {
 
 	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
 }
-
 register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
+
+function page_optimize_uninstall() {
+	// Run cleanup on uninstall. You can uninstall an active plugin w/o deactivation.
+	page_optimize_deactivate();
+
+	// JS
+	delete_option( 'page_optimize-js' );
+	delete_option( 'page_optimize-load-mode' );
+	delete_option( 'page_optimize-js-exclude' );
+	// CSS
+	delete_option( 'page_optimize-css' );
+	delete_option( 'page_optimize-css-exclude' );
+
+}
+register_uninstall_hook( __FILE__, 'page_optimize_uninstall' );
 
 function page_optimize_get_text_domain() {
 	return 'page-optimize';
@@ -97,7 +111,7 @@ function page_optimize_css_default() {
 }
 
 function page_optimize_js_load_mode_default() {
-	return 'defer';
+	return '';
 }
 
 function page_optimize_js_exclude_list() {
