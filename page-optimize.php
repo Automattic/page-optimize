@@ -47,7 +47,7 @@ add_action( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, 'page_optimize_cache_cleanup' 
 
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
-	page_optimize_cache_cleanup( $file_age = 0 );
+	page_optimize_cache_cleanup( 0 /* max file age */ );
 
 	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
 }
