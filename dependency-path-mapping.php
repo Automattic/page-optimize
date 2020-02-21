@@ -143,20 +143,4 @@ class Page_Optimize_Dependency_Path_Mapping {
 
 		return substr( $str, 0, $prefix_length ) === $prefix;
 	}
-
-	/**
-	 * Get a URL's scheme, host, and port for later comparison.
-	 */
-	static function get_url_scheme_and_host( $url ) {
-		$url_parts = parse_url( $url );
-		if ( false === $url_parts ) {
-			return array();
-		}
-
-		// Create a mask so we can focus on just the keys we care about.
-		// That way, results from this function can be simply compared for equality with `==`.
-		$key_mask = array( 'scheme' => 0, 'host' => 0, 'port' => 0 );
-
-		return array_intersect_key( $url_parts, $key_mask );
-	}
 }
