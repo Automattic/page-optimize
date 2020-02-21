@@ -1,12 +1,16 @@
 <?php
-require_once( __DIR__ . '/utils.php' );
+
+require_once __DIR__ . '/dependency-path-mapping.php';
+require_once __DIR__ . '/utils.php';
 
 if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
 	define( 'ALLOW_GZIP_COMPRESSION', true );
 }
 
 class Page_Optimize_CSS_Concat extends WP_Styles {
+	private $dependency_path_mapping;
 	private $old_styles;
+
 	public $allow_gzip_compression;
 
 	function __construct( $styles ) {
@@ -25,6 +29,10 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			}
 			unset( $this->$key );
 		}
+
+		$this->dependency_path_mapping = new Page_Optimize_Dependency_Path_Mapping(
+			apply_filters( 'page_optimize_site_url', $this->base_url )
+		);
 	}
 
 	function do_items( $handles = false, $group = false ) {
@@ -84,18 +92,18 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			}
 
 			// Don't try to concat externally hosted scripts
-			$is_internal_url = Page_Optimize_Utils::is_internal_url( $css_url, $siteurl );
-			if ( $do_concat && ! $is_internal_url ) {
+			$is_internal_uri = $this->dependency_path_mapping->is_internal_uri( $css_url );
+			if ( $do_concat && ! $is_internal_uri ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => External URL: %s -->\n", esc_html( $handle ), esc_url( $css_url ) );
 				}
 				$do_concat = false;
 			}
 
-			// Concat scripts that aren't outside ABSPATH
 			if ( $do_concat ) {
-				$css_realpath = Page_Optimize_Utils::realpath( $css_url, $siteurl );
-				if ( ! $css_realpath || ! file_exists( $css_realpath ) ) {
+				// Resolve paths and concat styles that exist in the filesystem
+				$css_realpath = $this->dependency_path_mapping->dependency_src_to_fs_path( $css_url );
+				if ( false === $css_realpath ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat CSS %s => Invalid Path %s -->\n", esc_html( $handle ), esc_html( $css_realpath ) );
 					}
@@ -148,18 +156,11 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					}
 					continue;
 				} elseif ( count( $css ) > 1 ) {
-					$paths = array_map( function ( $url ) {
-						$path = ABSPATH . $url;
+					$paths = array();
+					foreach ( $css as $css_uri_path ) {
+						$paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $css_uri_path );
+					}
 
-						if ( ! file_exists( $path )
-							&& false !== strpos( $url, '/wp-content/' )
-							&& defined( 'WP_CONTENT_DIR' )
-						) {
-							$path = str_replace( '/wp-content', WP_CONTENT_DIR, $url );
-						}
-
-						return $path;
-					}, $css );
 					$mtime = max( array_map( 'filemtime', $paths ) );
 					$path_str = implode( ',', $css ) . "?m={$mtime}";
 
@@ -199,7 +200,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			return $url;
 		}
 
-		$file = Page_Optimize_Utils::realpath( $url, $siteurl );
+		$file = $this->dependency_path_mapping->uri_path_to_fs_path( $url );
 
 		$mtime = false;
 		if ( file_exists( $file ) ) {
