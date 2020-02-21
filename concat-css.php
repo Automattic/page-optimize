@@ -173,7 +173,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 					$href = $siteurl . "/_static/??" . $path_str;
 				} else {
-					$href = $this->cache_bust_mtime( $siteurl . current( $css ), $siteurl );
+					$href = Page_Optimize_Utils::cache_bust_mtime( current( $css ), $siteurl );
 				}
 
 				$handles = array_keys( $css );
@@ -188,39 +188,6 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		}
 
 		return $this->done;
-	}
-
-	function cache_bust_mtime( $url, $siteurl ) {
-		if ( strpos( $url, '?m=' ) ) {
-			return $url;
-		}
-
-		$parts = parse_url( $url );
-		if ( ! isset( $parts['path'] ) || empty( $parts['path'] ) ) {
-			return $url;
-		}
-
-		$file = $this->dependency_path_mapping->uri_path_to_fs_path( $url );
-
-		$mtime = false;
-		if ( file_exists( $file ) ) {
-			$mtime = filemtime( $file );
-		}
-
-		if ( ! $mtime ) {
-			return $url;
-		}
-
-		if ( false === strpos( $url, '?' ) ) {
-			$q = '';
-		} else {
-			list( $url, $q ) = explode( '?', $url, 2 );
-			if ( strlen( $q ) ) {
-				$q = '&amp;' . $q;
-			}
-		}
-
-		return "$url?m={$mtime}g{$q}";
 	}
 
 	function __isset( $key ) {
