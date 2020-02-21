@@ -128,6 +128,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 		// Ensure a trailing slash to avoid false matches like
 		// "/wp-content/resource" being judged a descendant of "/wp".
 		$dir_path = trailingslashit( $dir_path );
+
 		return static::starts_with( $dir_path, $candidate );
 	}
 
@@ -139,6 +140,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 		if ( strlen( $str ) < $prefix_length ) {
 			return false;
 		}
+
 		return substr( $str, 0, $prefix_length ) === $prefix;
 	}
 
@@ -154,6 +156,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 		// Create a mask so we can focus on just the keys we care about.
 		// That way, results from this function can be simply compared for equality with `==`.
 		$key_mask = array( 'scheme' => 0, 'host' => 0, 'port' => 0 );
+
 		return array_intersect_key( $url_parts, $key_mask );
 	}
 }

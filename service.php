@@ -87,8 +87,8 @@ function page_optimize_build_output() {
 	global $page_optimize_types;
 	ob_start( 'ob_gzhandler' );
 
-	require_once( __DIR__ . '/cssmin/cssmin.php' );
-	require_once( __DIR__ . '/utils.php' );
+	require_once __DIR__ . '/cssmin/cssmin.php';
+	require_once __DIR__ . '/utils.php';
 
 	/* Config */
 	$concat_max_files = 150;
@@ -298,5 +298,6 @@ function page_optimize_get_path( $uri ) {
 	if ( false === $path ) {
 		page_optimize_status_exit( 404 );
 	}
+
 	return $path;
 }
