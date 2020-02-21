@@ -30,7 +30,7 @@ class Page_Optimize_Utils {
 			$dependency_path_mapping = new Page_Optimize_Dependency_Path_Mapping();
 		}
 
-		$file = $dependency_path_mapping->uri_path_to_fs_path( $url );
+		$file = $dependency_path_mapping->dependency_src_to_fs_path( $path );
 
 		$mtime = false;
 		if ( file_exists( $file ) ) {
