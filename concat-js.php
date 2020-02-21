@@ -8,9 +8,10 @@ if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
 }
 
 class Page_Optimize_JS_Concat extends WP_Scripts {
-	private $old_scripts;
-	public $allow_gzip_compression;
 	private $dependency_path_mapping;
+	private $old_scripts;
+
+	public $allow_gzip_compression;
 
 	function __construct( $scripts ) {
 		if ( empty( $scripts ) || ! ( $scripts instanceof WP_Scripts ) ) {

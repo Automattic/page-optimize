@@ -8,9 +8,10 @@ if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
 }
 
 class Page_Optimize_CSS_Concat extends WP_Styles {
-	private $old_styles;
-	public $allow_gzip_compression;
 	private $dependency_path_mapping;
+	private $old_styles;
+
+	public $allow_gzip_compression;
 
 	function __construct( $styles ) {
 		if ( empty( $styles ) || ! ( $styles instanceof WP_Styles ) ) {
