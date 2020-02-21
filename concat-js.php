@@ -112,7 +112,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 
 			if ( $do_concat ) {
 				// Resolve paths and concat scripts that exist in the filesystem
-				$js_realpath = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $js_url );
+				$js_realpath = $this->dependency_path_mapping->dependency_src_to_fs_path( $js_url );
 				if ( false === $js_realpath ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat JS %s => Invalid Path %s -->\n", esc_html( $handle ), esc_html( $js_realpath ) );
@@ -210,7 +210,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 				if ( isset( $js_array['paths'] ) && count( $js_array['paths'] ) > 1 ) {
 					$paths = array();
 					foreach ( $js_array['paths'] as $js_url ) {
-						$paths[] = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $js_url );
+						$paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $js_url );
 					}
 
 					$mtime = max( array_map( 'filemtime', $paths ) );
@@ -272,7 +272,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			return $url;
 		}
 
-		$file = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $url );
+		$file = $this->dependency_path_mapping->uri_path_to_fs_path( $url );
 
 		$mtime = false;
 		if ( file_exists( $file ) ) {

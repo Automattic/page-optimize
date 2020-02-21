@@ -47,12 +47,9 @@ class Page_Optimize_Dependency_Path_Mapping {
 	}
 
 	/**
-	 * Given the URL of a script/style dependency, return its local filesystem path.
-	 *
-	 * This function is useful when determining which script and style dependencies
-	 * can be concatenated.
+	 * Given the full URL of a script/style dependency, return its local filesystem path.
 	 */
-	function dependency_src_to_local_fs_path( $src ) {
+	function dependency_src_to_fs_path( $src ) {
 		if ( ! $this->is_internal_uri( $src ) ) {
 			// If a URI is not internal, we can have no confidence
 			// we are resolving to the correct file.
@@ -80,10 +77,6 @@ class Page_Optimize_Dependency_Path_Mapping {
 
 	/**
 	 * Given a URI path of a script/style resource, return its local filesystem path.
-	 *
-	 * This function is useful when building the concatenated content.
-	 * We have a list of resource paths that need to be located on the filesystem
-	 * before they can be concatenated.
 	 */
 	function uri_path_to_fs_path( $uri_path ) {
 		if ( 1 === preg_match( '#(?:^|/)\.\.?(?:/|$)#', $uri_path ) ) {

@@ -101,7 +101,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 			if ( $do_concat ) {
 				// Resolve paths and concat styles that exist in the filesystem
-				$css_realpath = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $css_url );
+				$css_realpath = $this->dependency_path_mapping->dependency_src_to_fs_path( $css_url );
 				if ( false === $css_realpath ) {
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat CSS %s => Invalid Path %s -->\n", esc_html( $handle ), esc_html( $css_realpath ) );
@@ -156,8 +156,8 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					continue;
 				} elseif ( count( $css ) > 1 ) {
 					$paths = array();
-					foreach ( $css as $css_url ) {
-						$paths[] = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $css_url );
+					foreach ( $css as $css_uri_path ) {
+						$paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $css_uri_path );
 					}
 
 					$mtime = max( array_map( 'filemtime', $paths ) );
@@ -199,7 +199,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			return $url;
 		}
 
-		$file = $this->dependency_path_mapping->dependency_src_to_local_fs_path( $url );
+		$file = $this->dependency_path_mapping->uri_path_to_fs_path( $url );
 
 		$mtime = false;
 		if ( file_exists( $file ) ) {
