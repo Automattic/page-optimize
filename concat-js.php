@@ -226,7 +226,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 
 					$href = $siteurl . "/_static/??" . $path_str;
 				} elseif ( isset( $js_array['paths'] ) && is_array( $js_array['paths'] ) ) {
-					$href = $this->cache_bust_mtime( $siteurl . $js_array['paths'][0], $siteurl );
+					$href = Page_Optimize_Utils::cache_bust_mtime( $js_array['paths'][0], $siteurl );
 				}
 
 				$this->done = array_merge( $this->done, $js_array['handles'] );
@@ -261,39 +261,6 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 		do_action( 'js_concat_did_items', $javascripts );
 
 		return $this->done;
-	}
-
-	function cache_bust_mtime( $url, $siteurl ) {
-		if ( strpos( $url, '?m=' ) ) {
-			return $url;
-		}
-
-		$parts = parse_url( $url );
-		if ( ! isset( $parts['path'] ) || empty( $parts['path'] ) ) {
-			return $url;
-		}
-
-		$file = $this->dependency_path_mapping->uri_path_to_fs_path( $url );
-
-		$mtime = false;
-		if ( file_exists( $file ) ) {
-			$mtime = filemtime( $file );
-		}
-
-		if ( ! $mtime ) {
-			return $url;
-		}
-
-		if ( false === strpos( $url, '?' ) ) {
-			$q = '';
-		} else {
-			list( $url, $q ) = explode( '?', $url, 2 );
-			if ( strlen( $q ) ) {
-				$q = '&amp;' . $q;
-			}
-		}
-
-		return "$url?m={$mtime}g{$q}";
 	}
 
 	function __isset( $key ) {
