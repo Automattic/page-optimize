@@ -70,7 +70,9 @@ function page_optimize_service_request() {
 	$meta   = array( 'headers' => headers_list() );
 
 	if ( $use_cache ) {
-		file_put_contents( "$cache_file.{$output['type']}", $output['content'] );
+		global $page_optimize_types;
+		$extension = array_flip( $page_optimize_types )[ $output['type'] ];
+		file_put_contents( "$cache_file.$extension", $output['content'] );
 		file_put_contents( $cache_file_meta, json_encode( $meta ) );
 	}
 

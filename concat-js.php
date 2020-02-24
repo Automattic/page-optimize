@@ -224,8 +224,8 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 						}
 					}
 
-					$cache_filename = md5( $path_str ) . '.js';
-					if ( file_exists( PAGE_OPTIMIZE_CACHE_DIR ) . '/' . $cache_filename ) {
+					$cache_filename = 'page-optimize-cache-' . md5( "/_static/??" . $path_str ) . '.js';
+					if ( file_exists( PAGE_OPTIMIZE_CACHE_DIR . '/' . $cache_filename ) ) {
 						$href = WP_CONTENT_URL . PAGE_OPTIMIZE_CACHE_PATH . '/' . $cache_filename;
 					} else {
 						$href = $siteurl . "/_static/??" . $path_str;
