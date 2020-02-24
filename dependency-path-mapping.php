@@ -20,7 +20,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 	function __construct(
 		// Expose URLs and DIRs for unit test
 		$site_url = null, // default site URL is determined dynamically
-		$site_dir = ABSPATH,
+		$site_dir = PAGE_OPTIMIZE_SITE_ROOT_DIR,
 		$content_url = WP_CONTENT_URL,
 		$content_dir = WP_CONTENT_DIR,
 		$plugin_url = WP_PLUGIN_URL,
@@ -109,7 +109,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 	 */
 	function is_internal_uri( $uri ) {
 		if ( page_optimize_starts_with( '/', $uri ) && ! page_optimize_starts_with( '//', $uri ) ) {
-			// Absolute paths are internal because they are based on the site dir (ABSPATH),
+			// Absolute paths are internal because they are based on the site dir (typically ABSPATH),
 			// and this looks like an absolute path.
 			return true;
 		}

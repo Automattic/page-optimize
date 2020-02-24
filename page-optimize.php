@@ -13,6 +13,10 @@ if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
 	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
 }
 
+if ( ! defined( 'PAGE_OPTIMIZE_SITE_ROOT_DIR' ) ) {
+	define( 'PAGE_OPTIMIZE_SITE_ROOT_DIR', ABSPATH );
+}
+
 define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanup' );
 
 // TODO: Copy tests from nginx-http-concat and/or write them
