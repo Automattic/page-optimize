@@ -196,8 +196,8 @@ function page_optimize_starts_with( $prefix, $str ) {
  * that are relative to a common ancestor directory. Assuming a common ancestor
  * allows us to skip resolving resource URIs to filesystem paths later on.
  */
-function page_optimize_has_resource_base_path() {
-	return defined( 'PAGE_OPTIMIZE_RESOURCE_BASE_PATH' ) && file_exists( PAGE_OPTIMIZE_RESOURCE_BASE_PATH );
+function page_optimize_has_resource_base_dir() {
+	return defined( 'PAGE_OPTIMIZE_RESOURCE_BASE_DIR' ) && file_exists( PAGE_OPTIMIZE_RESOURCE_BASE_DIR );
 }
 
 /**
@@ -205,9 +205,9 @@ function page_optimize_has_resource_base_path() {
  * Assuming a common ancestor allows us to skip resolving resource URIs
  * to filesystem paths later on.
  */
-function page_optimize_remove_resource_base_path( $original_fs_path ) {
-	if ( page_optimize_has_resource_base_path() ) {
-		$prefix = trailingslashit( PAGE_OPTIMIZE_RESOURCE_BASE_PATH );
+function page_optimize_remove_resource_base_prefix( $original_fs_path ) {
+	if ( page_optimize_has_resource_base_dir() ) {
+		$prefix = trailingslashit( PAGE_OPTIMIZE_RESOURCE_BASE_DIR );
 		if ( page_optimize_starts_with( $prefix, $original_fs_path ) ) {
 			$new_path = substr( $original_fs_path, strlen( $prefix ) );
 		}

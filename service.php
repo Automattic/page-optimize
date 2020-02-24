@@ -290,8 +290,8 @@ function page_optimize_get_path( $uri ) {
 		page_optimize_status_exit( 400 );
 	}
 
-	if ( defined( 'PAGE_OPTIMIZE_RESOURCE_BASE_PATH' ) ) {
-		$path = realpath( PAGE_OPTIMIZE_RESOURCE_BASE_PATH . "/$uri" );
+	if ( defined( 'PAGE_OPTIMIZE_RESOURCE_BASE_DIR' ) ) {
+		$path = realpath( PAGE_OPTIMIZE_RESOURCE_BASE_DIR . "/$uri" );
 	} else {
 		if ( empty( $dependency_path_mapping ) ) {
 			require_once __DIR__ . '/dependency-path-mapping.php';

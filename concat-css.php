@@ -162,8 +162,8 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					}
 
 					$mtime = max( array_map( 'filemtime', $fs_paths ) );
-					if ( page_optimize_has_resource_base_path() ) {
-						$path_str = implode( ',', array_map( 'page_optimize_remove_resource_base_path', $fs_paths ) );
+					if ( page_optimize_has_resource_base_dir() ) {
+						$path_str = implode( ',', array_map( 'page_optimize_remove_resource_base_prefix', $fs_paths ) );
 					} else {
 						$path_str = implode( ',', $css );
 					}
