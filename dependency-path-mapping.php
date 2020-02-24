@@ -20,7 +20,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 	function __construct(
 		// Expose URLs and DIRs for unit test
 		$site_url = null, // default site URL is determined dynamically
-		$site_dir = PAGE_OPTIMIZE_DEFAULT_RESOURCE_ROOT_DIR,
+		$site_dir = PAGE_OPTIMIZE_ABSPATH,
 		$content_url = WP_CONTENT_URL,
 		$content_dir = WP_CONTENT_DIR,
 		$plugin_url = WP_PLUGIN_URL,

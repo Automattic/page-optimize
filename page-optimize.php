@@ -13,8 +13,8 @@ if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
 	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
 }
 
-if ( ! defined( 'PAGE_OPTIMIZE_DEFAULT_RESOURCE_ROOT_DIR' ) ) {
-	define( 'PAGE_OPTIMIZE_DEFAULT_RESOURCE_ROOT_DIR', ABSPATH );
+if ( ! defined( 'PAGE_OPTIMIZE_ABSPATH' ) ) {
+	define( 'PAGE_OPTIMIZE_ABSPATH', ABSPATH );
 }
 
 define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanup' );
