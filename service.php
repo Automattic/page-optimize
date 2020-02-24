@@ -1,7 +1,5 @@
 <?php
 
-require_once __DIR__ . '/dependency-path-mapping.php';
-
 $page_optimize_types = array(
 	'css' => 'text/css',
 	'js' => 'application/javascript'
@@ -66,10 +64,11 @@ function page_optimize_service_request() {
 	}
 
 	$output = page_optimize_build_output();
-	// TODO: It seems insecure to indiscriminately cache and send headers. Cache only specific headers.
-	$meta   = array( 'headers' => headers_list() );
 
 	if ( $use_cache ) {
+		// TODO: It seems insecure to indiscriminately cache and send headers. Cache only specific headers.
+		$meta   = array( 'headers' => headers_list() );
+
 		file_put_contents( $cache_file, $output );
 		file_put_contents( $cache_file_meta, json_encode( $meta ) );
 	}
@@ -282,9 +281,6 @@ function page_optimize_get_mime_type( $file ) {
 
 function page_optimize_get_path( $uri ) {
 	static $dependency_path_mapping;
-	if ( empty( $dependency_path_mapping ) ) {
-		$dependency_path_mapping = new Page_Optimize_Dependency_Path_Mapping();
-	}
 
 	if ( ! strlen( $uri ) ) {
 		page_optimize_status_exit( 400 );
@@ -294,7 +290,16 @@ function page_optimize_get_path( $uri ) {
 		page_optimize_status_exit( 400 );
 	}
 
-	$path = $dependency_path_mapping->uri_path_to_fs_path( $uri );
+	if ( defined( 'PAGE_OPTIMIZE_RESOURCE_BASE_PATH' ) ) {
+		$path = realpath( PAGE_OPTIMIZE_RESOURCE_BASE_PATH . "/$uri" );
+	} else {
+		if ( empty( $dependency_path_mapping ) ) {
+			require_once __DIR__ . '/dependency-path-mapping.php';
+			$dependency_path_mapping = new Page_Optimize_Dependency_Path_Mapping();
+		}
+		$path = $dependency_path_mapping->uri_path_to_fs_path( $uri );
+	}
+
 	if ( false === $path ) {
 		page_optimize_status_exit( 404 );
 	}

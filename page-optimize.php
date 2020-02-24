@@ -179,6 +179,46 @@ function page_optimize_sanitize_exclude_field( $value ) {
 	return implode( ',', $sanitized_values );
 }
 
+/**
+ * Determines whether a string starts with another string.
+ */
+function page_optimize_starts_with( $prefix, $str ) {
+	$prefix_length = strlen( $prefix );
+	if ( strlen( $str ) < $prefix_length ) {
+		return false;
+	}
+
+	return substr( $str, 0, $prefix_length ) === $prefix;
+}
+
+/**
+ * Answers whether the plugin should provide concat resource URIs
+ * that are relative to a common ancestor directory. Assuming a common ancestor
+ * allows us to skip resolving resource URIs to filesystem paths later on.
+ */
+function page_optimize_has_resource_base_path() {
+	return defined( 'PAGE_OPTIMIZE_RESOURCE_BASE_PATH' ) && file_exists( PAGE_OPTIMIZE_RESOURCE_BASE_PATH );
+}
+
+/**
+ * Get a filesystem path relative to a configured resource base path.
+ * Assuming a common ancestor allows us to skip resolving resource URIs
+ * to filesystem paths later on.
+ */
+function page_optimize_remove_resource_base_path( $original_fs_path ) {
+	if ( page_optimize_has_resource_base_path() ) {
+		$prefix = trailingslashit( PAGE_OPTIMIZE_RESOURCE_BASE_PATH );
+		if ( page_optimize_starts_with( $prefix, $original_fs_path ) ) {
+			$new_path = substr( $original_fs_path, strlen( $prefix ) );
+		}
+	}
+
+	if ( empty( $new_path ) ) {
+		$new_path = '/page-optimize-resource-outside-base-path/' . basename( $original_fs_path );
+	}
+	return $new_path;
+}
+
 function page_optimize_init() {
 	// Bail if we're in customizer
 	global $wp_customize;

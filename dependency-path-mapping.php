@@ -108,7 +108,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 	 * This method helps ensure we only resolve to local FS paths.
 	 */
 	function is_internal_uri( $uri ) {
-		if ( static::starts_with( '/', $uri ) && ! static::starts_with( '//', $uri ) ) {
+		if ( page_optimize_starts_with( '/', $uri ) && ! page_optimize_starts_with( '//', $uri ) ) {
 			// Absolute paths are internal because they are based on the site dir (ABSPATH),
 			// and this looks like an absolute path.
 			return true;
@@ -129,18 +129,6 @@ class Page_Optimize_Dependency_Path_Mapping {
 		// "/wp-content/resource" being judged a descendant of "/wp".
 		$dir_path = trailingslashit( $dir_path );
 
-		return static::starts_with( $dir_path, $candidate );
-	}
-
-	/**
-	 * Determines whether a string starts with another string.
-	 */
-	static function starts_with( $prefix, $str ) {
-		$prefix_length = strlen( $prefix );
-		if ( strlen( $str ) < $prefix_length ) {
-			return false;
-		}
-
-		return substr( $str, 0, $prefix_length ) === $prefix;
+		return page_optimize_starts_with( $dir_path, $candidate );
 	}
 }
