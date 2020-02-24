@@ -171,7 +171,12 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 						}
 					}
 
-					$href = $siteurl . "/_static/??" . $path_str;
+					$cache_filename = md5( $path_str ) . '.css';
+					if ( file_exists( PAGE_OPTIMIZE_CACHE_DIR ) . '/' . $cache_filename ) {
+						$href = WP_CONTENT_URL . PAGE_OPTIMIZE_CACHE_PATH . '/' . $cache_filename;
+					} else {
+						$href = $siteurl . "/_static/??" . $path_str;
+					}
 				} else {
 					$href = Page_Optimize_Utils::cache_bust_mtime( current( $css ), $siteurl );
 				}

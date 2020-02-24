@@ -9,8 +9,11 @@ Author URI: http://automattic.com/
 */
 
 // Default cache directory
+if ( ! defined( 'PAGE_OPTIMIZE_CACHE_PATH' ) ) {
+	define( 'PAGE_OPTIMIZE_CACHE_PATH', '/cache/page_optimize' );
+}
 if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
-	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
+	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . PAGE_OPTIMIZE_CACHE_PATH );
 }
 
 define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanup' );

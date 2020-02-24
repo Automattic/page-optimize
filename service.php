@@ -70,15 +70,15 @@ function page_optimize_service_request() {
 	$meta   = array( 'headers' => headers_list() );
 
 	if ( $use_cache ) {
-		file_put_contents( $cache_file, $output );
+		file_put_contents( "$cache_file.{$output['type']}", $output['content'] );
 		file_put_contents( $cache_file_meta, json_encode( $meta ) );
 	}
 
 	header( 'X-Page-Optimize: uncached' );
 	header( 'Cache-Control: max-age=' . 31536000 );
-	header( 'ETag: "' . md5( $output ) . '"' );
+	header( 'ETag: "' . md5( $output['content'] ) . '"' );
 
-	echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
+	echo $output['content']; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
 
 	die();
 }
@@ -259,7 +259,10 @@ function page_optimize_build_output() {
 
 	echo $pre_output . $output;
 
-	return ob_get_clean();
+	return [
+		'type' => $mime_type,
+		'content' => ob_get_clean(),
+	];
 }
 
 function page_optimize_status_exit( $status ) {

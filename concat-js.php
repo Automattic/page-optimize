@@ -224,7 +224,12 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 						}
 					}
 
-					$href = $siteurl . "/_static/??" . $path_str;
+					$cache_filename = md5( $path_str ) . '.js';
+					if ( file_exists( PAGE_OPTIMIZE_CACHE_DIR ) . '/' . $cache_filename ) {
+						$href = WP_CONTENT_URL . PAGE_OPTIMIZE_CACHE_PATH . '/' . $cache_filename;
+					} else {
+						$href = $siteurl . "/_static/??" . $path_str;
+					}
 				} elseif ( isset( $js_array['paths'] ) && is_array( $js_array['paths'] ) ) {
 					$href = Page_Optimize_Utils::cache_bust_mtime( $js_array['paths'][0], $siteurl );
 				}
