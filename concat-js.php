@@ -215,8 +215,8 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 					}
 
 					$mtime = max( array_map( 'filemtime', $fs_paths ) );
-					if ( page_optimize_has_resource_base_dir() ) {
-						$path_str = implode( ',', array_map( 'page_optimize_remove_resource_base_prefix', $fs_paths ) );
+					if ( page_optimize_has_concat_base_dir() ) {
+						$path_str = implode( ',', array_map( 'page_optimize_remove_concat_base_prefix', $fs_paths ) );
 					} else {
 						$path_str = implode( ',', $js_array['paths'] );
 					}

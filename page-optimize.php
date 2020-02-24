@@ -13,8 +13,8 @@ if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
 	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
 }
 
-if ( ! defined( 'PAGE_OPTIMIZE_SITE_ROOT_DIR' ) ) {
-	define( 'PAGE_OPTIMIZE_SITE_ROOT_DIR', ABSPATH );
+if ( ! defined( 'PAGE_OPTIMIZE_DEFAULT_RESOURCE_ROOT_DIR' ) ) {
+	define( 'PAGE_OPTIMIZE_DEFAULT_RESOURCE_ROOT_DIR', ABSPATH );
 }
 
 define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanup' );
@@ -200,18 +200,18 @@ function page_optimize_starts_with( $prefix, $str ) {
  * that are relative to a common ancestor directory. Assuming a common ancestor
  * allows us to skip resolving resource URIs to filesystem paths later on.
  */
-function page_optimize_has_resource_base_dir() {
-	return defined( 'PAGE_OPTIMIZE_RESOURCE_BASE_DIR' ) && file_exists( PAGE_OPTIMIZE_RESOURCE_BASE_DIR );
+function page_optimize_has_concat_base_dir() {
+	return defined( 'PAGE_OPTIMIZE_CONCAT_BASE_DIR' ) && file_exists( PAGE_OPTIMIZE_CONCAT_BASE_DIR );
 }
 
 /**
- * Get a filesystem path relative to a configured resource base path.
- * Assuming a common ancestor allows us to skip resolving resource URIs
- * to filesystem paths later on.
+ * Get a filesystem path relative to a configured base path for resources
+ * that will be concatenated. Assuming a common ancestor allows us to skip
+ * resolving resource URIs to filesystem paths later on.
  */
-function page_optimize_remove_resource_base_prefix( $original_fs_path ) {
-	if ( page_optimize_has_resource_base_dir() ) {
-		$prefix = trailingslashit( PAGE_OPTIMIZE_RESOURCE_BASE_DIR );
+function page_optimize_remove_concat_base_prefix( $original_fs_path ) {
+	if ( page_optimize_has_concat_base_dir() ) {
+		$prefix = trailingslashit( PAGE_OPTIMIZE_CONCAT_BASE_DIR );
 		if ( page_optimize_starts_with( $prefix, $original_fs_path ) ) {
 			$new_path = substr( $original_fs_path, strlen( $prefix ) );
 		}
