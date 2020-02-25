@@ -301,7 +301,13 @@ function page_optimize_get_path( $uri ) {
 	}
 
 	if ( defined( 'PAGE_OPTIMIZE_CONCAT_BASE_DIR' ) ) {
-		$path = realpath( PAGE_OPTIMIZE_CONCAT_BASE_DIR . "/$uri" );
+		if ( file_exists( PAGE_OPTIMIZE_CONCAT_BASE_DIR . "/$uri" ) ) {
+			$path = realpath( PAGE_OPTIMIZE_CONCAT_BASE_DIR . "/$uri" );
+		}
+
+		if ( empty( $path ) && file_exists( PAGE_OPTIMIZE_ABSPATH . "/$uri" ) ) {
+			$path = realpath( PAGE_OPTIMIZE_ABSPATH . "/$uri" );
+		}
 	} else {
 		if ( empty( $dependency_path_mapping ) ) {
 			require_once __DIR__ . '/dependency-path-mapping.php';

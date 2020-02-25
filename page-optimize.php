@@ -210,17 +210,26 @@ function page_optimize_use_concat_base_dir() {
  * resolving resource URIs to filesystem paths later on.
  */
 function page_optimize_remove_concat_base_prefix( $original_fs_path ) {
-	if ( page_optimize_use_concat_base_dir() ) {
-		$prefix = trailingslashit( PAGE_OPTIMIZE_CONCAT_BASE_DIR );
-		if ( page_optimize_starts_with( $prefix, $original_fs_path ) ) {
-			$new_path = substr( $original_fs_path, strlen( $prefix ) );
-		}
+	// Always check longer path first
+	if ( strlen( PAGE_OPTIMIZE_ABSPATH ) > strlen( PAGE_OPTIMIZE_CONCAT_BASE_DIR ) ) {
+		$longer_path = PAGE_OPTIMIZE_ABSPATH;
+		$shorter_path = PAGE_OPTIMIZE_CONCAT_BASE_DIR;
+	} else {
+		$longer_path = PAGE_OPTIMIZE_CONCAT_BASE_DIR;
+		$shorter_path = PAGE_OPTIMIZE_ABSPATH;
 	}
 
-	if ( empty( $new_path ) ) {
-		$new_path = '/page-optimize-resource-outside-base-path/' . basename( $original_fs_path );
+	$prefix_abspath = trailingslashit( $longer_path );
+	if ( page_optimize_starts_with( $prefix_abspath, $original_fs_path ) ) {
+		return substr( $original_fs_path, strlen( $prefix_abspath ) );
 	}
-	return $new_path;
+
+	$prefix_basedir = trailingslashit( $shorter_path );
+	if ( page_optimize_starts_with( $prefix_basedir, $original_fs_path ) ) {
+		return substr( $original_fs_path, strlen( $prefix_basedir ) );
+	}
+
+	return '/page-optimize-resource-outside-base-path/' . basename( $original_fs_path );
 }
 
 function page_optimize_init() {
