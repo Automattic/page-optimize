@@ -212,7 +212,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 	}
 }
 
-function css_concat_init() {
+function page_optimize_css_concat_init() {
 	global $wp_styles;
 
 	$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
@@ -220,5 +220,5 @@ function css_concat_init() {
 }
 
 if ( page_optimize_should_concat_css() ) {
-	add_action( 'init', 'css_concat_init' );
+	add_action( 'init', 'page_optimize_css_concat_init' );
 }

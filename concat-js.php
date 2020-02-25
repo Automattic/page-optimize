@@ -285,7 +285,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 	}
 }
 
-function js_concat_init() {
+function page_optimize_js_concat_init() {
 	global $wp_scripts;
 
 	$wp_scripts = new Page_Optimize_JS_Concat( $wp_scripts );
@@ -293,5 +293,5 @@ function js_concat_init() {
 }
 
 if ( ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) ) {
-	add_action( 'init', 'js_concat_init' );
+	add_action( 'init', 'page_optimize_js_concat_init' );
 }
