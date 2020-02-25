@@ -156,13 +156,18 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					}
 					continue;
 				} elseif ( count( $css ) > 1 ) {
-					$paths = array();
+					$fs_paths = array();
 					foreach ( $css as $css_uri_path ) {
-						$paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $css_uri_path );
+						$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $css_uri_path );
 					}
 
-					$mtime = max( array_map( 'filemtime', $paths ) );
-					$path_str = implode( ',', $css ) . "?m={$mtime}";
+					$mtime = max( array_map( 'filemtime', $fs_paths ) );
+					if ( page_optimize_use_concat_base_dir() ) {
+						$path_str = implode( ',', array_map( 'page_optimize_remove_concat_base_prefix', $fs_paths ) );
+					} else {
+						$path_str = implode( ',', $css );
+					}
+					$path_str = "$path_str?m=$mtime";
 
 					if ( $this->allow_gzip_compression ) {
 						$path_64 = base64_encode( gzcompress( $path_str ) );

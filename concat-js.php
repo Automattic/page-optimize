@@ -209,13 +209,18 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 				array_map( array( $this, 'print_extra_script' ), $js_array['handles'] );
 
 				if ( isset( $js_array['paths'] ) && count( $js_array['paths'] ) > 1 ) {
-					$paths = array();
+					$fs_paths = array();
 					foreach ( $js_array['paths'] as $js_url ) {
-						$paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $js_url );
+						$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $js_url );
 					}
 
-					$mtime = max( array_map( 'filemtime', $paths ) );
-					$path_str = implode( ',', $js_array['paths'] ) . "?m=${mtime}";
+					$mtime = max( array_map( 'filemtime', $fs_paths ) );
+					if ( page_optimize_use_concat_base_dir() ) {
+						$path_str = implode( ',', array_map( 'page_optimize_remove_concat_base_prefix', $fs_paths ) );
+					} else {
+						$path_str = implode( ',', $js_array['paths'] );
+					}
+					$path_str = "$path_str?m=$mtime";
 
 					if ( $this->allow_gzip_compression ) {
 						$path_64 = base64_encode( gzcompress( $path_str ) );

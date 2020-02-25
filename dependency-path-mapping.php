@@ -20,7 +20,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 	function __construct(
 		// Expose URLs and DIRs for unit test
 		$site_url = null, // default site URL is determined dynamically
-		$site_dir = ABSPATH,
+		$site_dir = PAGE_OPTIMIZE_ABSPATH,
 		$content_url = WP_CONTENT_URL,
 		$content_dir = WP_CONTENT_DIR,
 		$plugin_url = WP_PLUGIN_URL,
@@ -69,7 +69,8 @@ class Page_Optimize_Dependency_Path_Mapping {
 
 		if ( empty( $src_parts['host'] ) ) {
 			// With no host, this is a path relative to the WordPress root
-			return realpath( "{$this->site_dir}{$path}" );
+			$fs_path = "{$this->site_dir}{$path}";
+			return file_exists( $fs_path ) ? $fs_path : false;
 		}
 
 		return $this->uri_path_to_fs_path( $path );
@@ -95,8 +96,8 @@ class Page_Optimize_Dependency_Path_Mapping {
 			$file_path = $this->site_dir . substr( $uri_path, strlen( $this->site_uri_path ) );
 		}
 
-		if ( isset( $file_path ) ) {
-			return realpath( $file_path );
+		if ( isset( $file_path ) && file_exists( $file_path ) ) {
+			return $file_path;
 		} else {
 			return false;
 		}
@@ -108,8 +109,8 @@ class Page_Optimize_Dependency_Path_Mapping {
 	 * This method helps ensure we only resolve to local FS paths.
 	 */
 	function is_internal_uri( $uri ) {
-		if ( static::starts_with( '/', $uri ) && ! static::starts_with( '//', $uri ) ) {
-			// Absolute paths are internal because they are based on the site dir (ABSPATH),
+		if ( page_optimize_starts_with( '/', $uri ) && ! page_optimize_starts_with( '//', $uri ) ) {
+			// Absolute paths are internal because they are based on the site dir (typically ABSPATH),
 			// and this looks like an absolute path.
 			return true;
 		}
@@ -129,18 +130,6 @@ class Page_Optimize_Dependency_Path_Mapping {
 		// "/wp-content/resource" being judged a descendant of "/wp".
 		$dir_path = trailingslashit( $dir_path );
 
-		return static::starts_with( $dir_path, $candidate );
-	}
-
-	/**
-	 * Determines whether a string starts with another string.
-	 */
-	static function starts_with( $prefix, $str ) {
-		$prefix_length = strlen( $prefix );
-		if ( strlen( $str ) < $prefix_length ) {
-			return false;
-		}
-
-		return substr( $str, 0, $prefix_length ) === $prefix;
+		return page_optimize_starts_with( $dir_path, $candidate );
 	}
 }

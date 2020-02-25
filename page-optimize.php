@@ -4,13 +4,17 @@ Plugin Name: Page Optimize
 Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.3.2
+Version: 0.3.3
 Author URI: http://automattic.com/
 */
 
 // Default cache directory
 if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
 	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
+}
+
+if ( ! defined( 'PAGE_OPTIMIZE_ABSPATH' ) ) {
+	define( 'PAGE_OPTIMIZE_ABSPATH', ABSPATH );
 }
 
 define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanup' );
@@ -177,6 +181,56 @@ function page_optimize_sanitize_exclude_field( $value ) {
 	}
 
 	return implode( ',', $sanitized_values );
+}
+
+/**
+ * Determines whether a string starts with another string.
+ */
+function page_optimize_starts_with( $prefix, $str ) {
+	$prefix_length = strlen( $prefix );
+	if ( strlen( $str ) < $prefix_length ) {
+		return false;
+	}
+
+	return substr( $str, 0, $prefix_length ) === $prefix;
+}
+
+/**
+ * Answers whether the plugin should provide concat resource URIs
+ * that are relative to a common ancestor directory. Assuming a common ancestor
+ * allows us to skip resolving resource URIs to filesystem paths later on.
+ */
+function page_optimize_use_concat_base_dir() {
+	return defined( 'PAGE_OPTIMIZE_CONCAT_BASE_DIR' ) && file_exists( PAGE_OPTIMIZE_CONCAT_BASE_DIR );
+}
+
+/**
+ * Get a filesystem path relative to a configured base path for resources
+ * that will be concatenated. Assuming a common ancestor allows us to skip
+ * resolving resource URIs to filesystem paths later on.
+ */
+function page_optimize_remove_concat_base_prefix( $original_fs_path ) {
+	// Always check longer path first
+	if ( strlen( PAGE_OPTIMIZE_ABSPATH ) > strlen( PAGE_OPTIMIZE_CONCAT_BASE_DIR ) ) {
+		$longer_path = PAGE_OPTIMIZE_ABSPATH;
+		$shorter_path = PAGE_OPTIMIZE_CONCAT_BASE_DIR;
+	} else {
+		$longer_path = PAGE_OPTIMIZE_CONCAT_BASE_DIR;
+		$shorter_path = PAGE_OPTIMIZE_ABSPATH;
+	}
+
+	$prefix_abspath = trailingslashit( $longer_path );
+	if ( page_optimize_starts_with( $prefix_abspath, $original_fs_path ) ) {
+		return substr( $original_fs_path, strlen( $prefix_abspath ) );
+	}
+
+	$prefix_basedir = trailingslashit( $shorter_path );
+	if ( page_optimize_starts_with( $prefix_basedir, $original_fs_path ) ) {
+		return substr( $original_fs_path, strlen( $prefix_basedir ) );
+	}
+
+	// If we end up here, this is a resource we shouldn't have tried to concat in the first place
+	return '/page-optimize-resource-outside-base-path/' . basename( $original_fs_path );
 }
 
 function page_optimize_init() {
