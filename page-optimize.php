@@ -242,7 +242,7 @@ function page_optimize_bail() {
 	}
 
 	// Bail if Divi theme is active, and we're in the Divi Front End Builder
-	if ( 'Divi' === wp_get_theme()->get_stylesheet() && ! empty( $_GET['et_fb'] ) ) {
+	if ( ! empty( $_GET['et_fb'] ) && 'Divi' === wp_get_theme()->get_stylesheet() ) {
 		return true;
 	}
 
