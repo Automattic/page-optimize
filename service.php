@@ -87,7 +87,6 @@ function page_optimize_build_output() {
 	ob_start( 'ob_gzhandler' );
 
 	require_once __DIR__ . '/cssmin/cssmin.php';
-	require_once __DIR__ . '/utils.php';
 
 	/* Config */
 	$concat_max_files = 150;
@@ -193,7 +192,7 @@ function page_optimize_build_output() {
 			$dirpath = $subdir_path_prefix . dirname( $uri );
 
 			// url(relative/path/to/file) -> url(/absolute/and/not/relative/path/to/file)
-			$buf = Page_Optimize_Utils::relative_path_replace( $buf, $dirpath );
+			$buf = page_optimize_relative_path_replace( $buf, $dirpath );
 
 			// AlphaImageLoader(...src='relative/path/to/file'...) -> AlphaImageLoader(...src='/absolute/path/to/file'...)
 			$buf = preg_replace(
@@ -277,6 +276,17 @@ function page_optimize_get_mime_type( $file ) {
 	$ext = substr( $file, $lastdot_pos + 1 );
 
 	return isset( $page_optimize_types[ $ext ] ) ? $page_optimize_types[ $ext ] : false;
+}
+
+function page_optimize_relative_path_replace( $buf, $dirpath ) {
+	// url(relative/path/to/file) -> url(/absolute/and/not/relative/path/to/file)
+	$buf = preg_replace(
+		'/(:?\s*url\s*\()\s*(?:\'|")?\s*([^\/\'"\s\)](?:(?<!data:|http:|https:|[\(\'"]#|%23).)*)[\'"\s]*\)/isU',
+		'$1' . ( $dirpath == '/' ? '/' : $dirpath . '/' ) . '$2)',
+		$buf
+	);
+
+	return $buf;
 }
 
 function page_optimize_get_path( $uri ) {
