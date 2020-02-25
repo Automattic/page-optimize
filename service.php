@@ -66,8 +66,7 @@ function page_optimize_service_request() {
 	$output = page_optimize_build_output();
 
 	if ( $use_cache ) {
-		// TODO: It seems insecure to indiscriminately cache and send headers. Cache only specific headers.
-		$meta   = array( 'headers' => headers_list() );
+		$meta = array( 'headers' => headers_list() );
 
 		file_put_contents( $cache_file, $output );
 		file_put_contents( $cache_file_meta, json_encode( $meta ) );
