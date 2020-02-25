@@ -200,7 +200,7 @@ function page_optimize_starts_with( $prefix, $str ) {
  * that are relative to a common ancestor directory. Assuming a common ancestor
  * allows us to skip resolving resource URIs to filesystem paths later on.
  */
-function page_optimize_has_concat_base_dir() {
+function page_optimize_use_concat_base_dir() {
 	return defined( 'PAGE_OPTIMIZE_CONCAT_BASE_DIR' ) && file_exists( PAGE_OPTIMIZE_CONCAT_BASE_DIR );
 }
 
@@ -210,7 +210,7 @@ function page_optimize_has_concat_base_dir() {
  * resolving resource URIs to filesystem paths later on.
  */
 function page_optimize_remove_concat_base_prefix( $original_fs_path ) {
-	if ( page_optimize_has_concat_base_dir() ) {
+	if ( page_optimize_use_concat_base_dir() ) {
 		$prefix = trailingslashit( PAGE_OPTIMIZE_CONCAT_BASE_DIR );
 		if ( page_optimize_starts_with( $prefix, $original_fs_path ) ) {
 			$new_path = substr( $original_fs_path, strlen( $prefix ) );
