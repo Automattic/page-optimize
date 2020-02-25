@@ -233,10 +233,24 @@ function page_optimize_remove_concat_base_prefix( $original_fs_path ) {
 	return '/page-optimize-resource-outside-base-path/' . basename( $original_fs_path );
 }
 
-function page_optimize_init() {
+// Cases when we don't want to concat
+function page_optimize_bail() {
 	// Bail if we're in customizer
 	global $wp_customize;
 	if ( isset( $wp_customize ) ) {
+		return true;
+	}
+
+	// Bail if Divi theme is active, and we're in the Divi Front End Builder
+	if ( ! empty( $_GET['et_fb'] ) && 'Divi' === wp_get_theme()->get_stylesheet() ) {
+		return true;
+	}
+
+	return false;
+}
+
+function page_optimize_init() {
+	if ( page_optimize_bail() ) {
 		return;
 	}
 
