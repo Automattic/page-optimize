@@ -229,6 +229,7 @@ function page_optimize_remove_concat_base_prefix( $original_fs_path ) {
 		return substr( $original_fs_path, strlen( $prefix_basedir ) );
 	}
 
+	// If we end up here, this is a resource we shouldn't have tried to concat in the first place
 	return '/page-optimize-resource-outside-base-path/' . basename( $original_fs_path );
 }
 
