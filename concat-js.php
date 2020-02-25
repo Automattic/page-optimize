@@ -292,6 +292,6 @@ function js_concat_init() {
 	$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-if ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) {
+if ( ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) ) {
 	add_action( 'init', 'js_concat_init' );
 }

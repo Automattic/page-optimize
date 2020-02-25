@@ -224,9 +224,9 @@ function page_optimize_remove_concat_base_prefix( $original_fs_path ) {
 }
 
 function page_optimize_init() {
-	// Bail if we're in wp-admin or customizer
+	// Bail if we're in customizer
 	global $wp_customize;
-	if ( is_admin() || isset( $wp_customize ) ) {
+	if ( isset( $wp_customize ) ) {
 		return;
 	}
 
