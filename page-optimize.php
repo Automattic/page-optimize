@@ -4,7 +4,7 @@ Plugin Name: Page Optimize
 Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.3.4
+Version: 0.3.5
 Author URI: http://automattic.com/
 */
 
@@ -242,7 +242,7 @@ function page_optimize_bail() {
 	}
 
 	// Bail if Divi theme is active, and we're in the Divi Front End Builder
-	if ( ! empty( $_GET['et_fb'] ) && 'Divi' === wp_get_theme()->get_stylesheet() ) {
+	if ( ! empty( $_GET['et_fb'] ) && 'Divi' === wp_get_theme()->get_template() ) {
 		return true;
 	}
 
