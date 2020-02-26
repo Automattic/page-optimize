@@ -51,14 +51,11 @@ function page_optimize_service_request() {
 
 			$etag = '"' . md5( file_get_contents( $cache_file ) ) . '"';
 
-			ob_start();
 			header( 'X-Page-Optimize: cached' );
 			header( 'Cache-Control: max-age=' . 31536000 );
 			header( 'ETag: ' . $etag );
 
 			echo file_get_contents( $cache_file ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
-			$output = ob_get_clean();
-			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
 			die();
 		}
 	}
@@ -86,7 +83,6 @@ function page_optimize_service_request() {
 
 function page_optimize_build_output() {
 	global $page_optimize_types;
-	ob_start();
 
 	require_once __DIR__ . '/cssmin/cssmin.php';
 
@@ -265,11 +261,9 @@ function page_optimize_build_output() {
 		"Content-Type: $mime_type",
 	);
 
-	echo $pre_output . $output;
-
 	return array(
 		'headers' => $headers,
-		'content' => ob_get_clean(),
+		'content' => $pre_output . $output(),
 	);
 }
 
