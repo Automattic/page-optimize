@@ -63,25 +63,22 @@ function page_optimize_service_request() {
 		}
 	}
 
-	list(
-		'output' => $output,
-		'headers' => $headers,
-	) = page_optimize_build_output();
+	$output = page_optimize_build_output();
+	$content = $output['content'];
+	$headers = $output['headers'];
 
 	foreach( $headers as $header ) {
 		header( $header );
 	}
 	header( 'X-Page-Optimize: uncached' );
 	header( 'Cache-Control: max-age=' . 31536000 );
-	header( 'ETag: "' . md5( $output ) . '"' );
+	header( 'ETag: "' . md5( $content ) . '"' );
 
-	echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
+	echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
 
 	if ( $use_cache ) {
-		$meta = array( 'headers' => $headers );
-
-		file_put_contents( $cache_file, $output );
-		file_put_contents( $cache_file_meta, json_encode( $meta ) );
+		file_put_contents( $cache_file, $content );
+		file_put_contents( $cache_file_meta, json_encode( array( 'headers' => $headers ) ) );
 	}
 
 	die();
@@ -263,11 +260,10 @@ function page_optimize_build_output() {
 	);
 
 	echo $pre_output . $output;
-	$complete_output = ob_get_clean();
 
 	return array(
 		'headers' => $headers,
-		'output' => $complete_output,
+		'content' => ob_get_clean(),
 	);
 }
 
