@@ -8,6 +8,13 @@ Version: 0.4.2
 Author URI: http://automattic.com/
 */
 
+// Page Optimize setup
+define( 'PAGE_OPTIMIZE_CACHE_DIR', false ); // Disable cache
+
+// paths so we can run service.php w/o WP
+define( 'PAGE_OPTIMIZE_CONCAT_BASE_DIR', '/srv/htdocs' );
+define( 'PAGE_OPTIMIZE_ABSPATH', PAGE_OPTIMIZE_CONCAT_BASE_DIR . '/__wp__' );
+
 // Default cache directory
 if ( ! defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) ) {
 	define( 'PAGE_OPTIMIZE_CACHE_DIR', WP_CONTENT_DIR . '/cache/page_optimize' );
