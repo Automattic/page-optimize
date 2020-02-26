@@ -51,7 +51,7 @@ function page_optimize_service_request() {
 
 			$etag = '"' . md5( file_get_contents( $cache_file ) ) . '"';
 
-			ob_start( 'ob_gzhandler' );
+			ob_start();
 			header( 'X-Page-Optimize: cached' );
 			header( 'Cache-Control: max-age=' . 31536000 );
 			header( 'ETag: ' . $etag );
@@ -86,7 +86,7 @@ function page_optimize_service_request() {
 
 function page_optimize_build_output() {
 	global $page_optimize_types;
-	ob_start( 'ob_gzhandler' );
+	ob_start();
 
 	require_once __DIR__ . '/cssmin/cssmin.php';
 
@@ -243,7 +243,7 @@ function page_optimize_build_output() {
 				);
 			}
 
-			$buf = $css_minify->run( $buf );
+			//$buf = $css_minify->run( $buf );
 		}
 
 		if ( $page_optimize_types['js'] === $mime_type ) {
