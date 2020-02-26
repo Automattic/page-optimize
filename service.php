@@ -152,7 +152,11 @@ function page_optimize_build_output() {
 	$pre_output = '';
 	$output = '';
 
-	$css_minify = new tubalmartin\CssMin\Minifier;
+	$should_minify_css = defined( 'PAGE_OPTIMIZE_CSS_MINIFY' ) && ! empty( PAGE_OPTIMIZE_CSS_MINIFY );
+
+	if ( $should_minify_css ) {
+		$css_minify = new tubalmartin\CssMin\Minifier;
+	}
 
 	foreach ( $args as $uri ) {
 		$fullpath = page_optimize_get_path( $uri );
@@ -243,7 +247,9 @@ function page_optimize_build_output() {
 				);
 			}
 
-			//$buf = $css_minify->run( $buf );
+			if ( $should_minify_css ) {
+				$buf = $css_minify->run( $buf );
+			}
 		}
 
 		if ( $page_optimize_types['js'] === $mime_type ) {
