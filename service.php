@@ -263,7 +263,7 @@ function page_optimize_build_output() {
 
 	return array(
 		'headers' => $headers,
-		'content' => $pre_output . $output(),
+		'content' => $pre_output . $output,
 	);
 }
 
