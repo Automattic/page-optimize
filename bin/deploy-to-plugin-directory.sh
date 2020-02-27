@@ -5,7 +5,7 @@
 # Before deploying, this script checks to make sure the new version...
 # - Is greater than the previous version
 # - Matches "Stable version:" in readme.txt
-# - Is not more than one digit different than the previous version (just a warning)
+# - TODO: Is not more than one digit different than the previous version (just a warning)
 # - Contains new changes
 # - Is not yet tagged in the plugin directory SVN
 #
