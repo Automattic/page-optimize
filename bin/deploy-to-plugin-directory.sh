@@ -49,7 +49,7 @@ NEW_VERSION="$( wp_plugin_version "$NEW_LOADER_FILE" )"
 
 GIT_CURRENT_BRANCH="$( git branch | grep "* " | cut -c 3- )"
 if [[ "master" != $GIT_CURRENT_BRANCH ]] ; then
-	echo -e "Please switch to the master branch before deploying."
+	echo -e "${RED}Please switch to the master branch before deploying.$RESET"
 	exit 1
 fi
 
@@ -57,18 +57,18 @@ GIT_MASTER_REMOTE="$( git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut
 GIT_MASTER_LOCAL_COMMIT="$( git rev-parse master )"
 GIT_MASTER_REMOTE_COMMIT="$( git ls-remote $GIT_MASTER_REMOTE master | cut -f1 )"
 if [[ $GIT_MASTER_LOCAL_COMMIT != $GIT_MASTER_REMOTE_COMMIT ]] ; then
-	echo -e "Local master does not match $GIT_MASTER_REMOTE/master."
+	echo -e "${RED}Local master does not match $GIT_MASTER_REMOTE/master.$RESET"
 	exit 1
 fi
 
 GIT_TAG="v$NEW_VERSION"
 if ! git rev-parse "$GIT_TAG" >/dev/null 2>&1; then
-	echo -e "Please create and push '$GIT_TAG' for the new release."
+	echo -e "${RED}Please create and push '$GIT_TAG' for the new release.$RESET"
 	exit 1
 fi
 
 if ! git ls-remote --exit-code --tags "$GIT_MASTER_REMOTE" "$GIT_TAG" 2>&1 >/dev/null; then
-	echo -e "Please push the '$GIT_TAG' to the '$GIT_MASTER_REMOTE' git remote."
+	echo -e "${RED}Please push the '$GIT_TAG' to the '$GIT_MASTER_REMOTE' git remote.$RESET"
 	exit 1
 fi
 
