@@ -4,7 +4,7 @@ Tags: performance
 Requires at least: 5.3
 Tested up to: 5.3
 Requires PHP: 7.2
-Stable tag: 0.4.2
+Stable tag: 0.4.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -32,6 +32,12 @@ Page Optimize caches concatenated scripts and styles by default, and this consta
 To change the cache location, set this constant to the absolute filesystem path of that location.
 
 To disable caching, set this constant to `false`. Please note that disabling Page Optimize caching may negatively impact performance unless you are caching elsewhere.
+
+= PAGE_OPTIMIZE_CSS_MINIFY =
+
+Page Optimize has CSS Minification capabilities which are off by default.
+
+If you're using caching, and not minifying CSS elsewhere, it is recommended to enable it by setting it to `true`.
 
 == Testing ==
 

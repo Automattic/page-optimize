@@ -5,9 +5,6 @@ $page_optimize_types = array(
 	'js' => 'application/javascript'
 );
 
-// TODO: Provide a settings button to clear the cache
-// TODO: Should we provide a default at all? Is this a reasonable default?
-
 function page_optimize_service_request() {
 	$use_cache = defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR );
 	if ( $use_cache && ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) && ! mkdir( PAGE_OPTIMIZE_CACHE_DIR, 0775, true ) ) {
@@ -51,14 +48,11 @@ function page_optimize_service_request() {
 
 			$etag = '"' . md5( file_get_contents( $cache_file ) ) . '"';
 
-			ob_start( 'ob_gzhandler' );
 			header( 'X-Page-Optimize: cached' );
 			header( 'Cache-Control: max-age=' . 31536000 );
 			header( 'ETag: ' . $etag );
 
 			echo file_get_contents( $cache_file ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
-			$output = ob_get_clean();
-			echo $output; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
 			die();
 		}
 	}
@@ -86,7 +80,6 @@ function page_optimize_service_request() {
 
 function page_optimize_build_output() {
 	global $page_optimize_types;
-	ob_start( 'ob_gzhandler' );
 
 	require_once __DIR__ . '/cssmin/cssmin.php';
 
@@ -152,7 +145,11 @@ function page_optimize_build_output() {
 	$pre_output = '';
 	$output = '';
 
-	$css_minify = new tubalmartin\CssMin\Minifier;
+	$should_minify_css = defined( 'PAGE_OPTIMIZE_CSS_MINIFY' ) && ! empty( PAGE_OPTIMIZE_CSS_MINIFY );
+
+	if ( $should_minify_css ) {
+		$css_minify = new tubalmartin\CssMin\Minifier;
+	}
 
 	foreach ( $args as $uri ) {
 		$fullpath = page_optimize_get_path( $uri );
@@ -243,7 +240,9 @@ function page_optimize_build_output() {
 				);
 			}
 
-			$buf = $css_minify->run( $buf );
+			if ( $should_minify_css ) {
+				$buf = $css_minify->run( $buf );
+			}
 		}
 
 		if ( $page_optimize_types['js'] === $mime_type ) {
@@ -259,11 +258,9 @@ function page_optimize_build_output() {
 		"Content-Type: $mime_type",
 	);
 
-	echo $pre_output . $output;
-
 	return array(
 		'headers' => $headers,
-		'content' => ob_get_clean(),
+		'content' => $pre_output . $output,
 	);
 }
 
@@ -308,11 +305,9 @@ function page_optimize_get_path( $uri ) {
 	}
 
 	if ( defined( 'PAGE_OPTIMIZE_CONCAT_BASE_DIR' ) ) {
-		if ( file_exists( PAGE_OPTIMIZE_CONCAT_BASE_DIR . "/$uri" ) ) {
-			$path = realpath( PAGE_OPTIMIZE_CONCAT_BASE_DIR . "/$uri" );
-		}
+		$path = realpath( PAGE_OPTIMIZE_CONCAT_BASE_DIR . "/$uri" );
 
-		if ( empty( $path ) && file_exists( PAGE_OPTIMIZE_ABSPATH . "/$uri" ) ) {
+		if ( false === $path ) {
 			$path = realpath( PAGE_OPTIMIZE_ABSPATH . "/$uri" );
 		}
 	} else {
@@ -329,3 +324,5 @@ function page_optimize_get_path( $uri ) {
 
 	return $path;
 }
+
+page_optimize_service_request();

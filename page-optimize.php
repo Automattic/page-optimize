@@ -4,7 +4,7 @@ Plugin Name: Page Optimize
 Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.4.2
+Version: 0.4.3
 Author URI: http://automattic.com/
 */
 
@@ -17,6 +17,10 @@ if ( ! defined( 'PAGE_OPTIMIZE_ABSPATH' ) ) {
 	define( 'PAGE_OPTIMIZE_ABSPATH', ABSPATH );
 }
 
+if ( ! defined( 'PAGE_OPTIMIZE_CSS_MINIFY' ) ) {
+	define( 'PAGE_OPTIMIZE_CSS_MINIFY', false );
+}
+
 define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanup' );
 
 // TODO: Copy tests from nginx-http-concat and/or write them
@@ -24,7 +28,6 @@ define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanu
 // TODO: Make concat URL dir configurable
 if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUEST_URI'], 0, 9 ) ) {
 	require_once __DIR__ . '/service.php';
-	page_optimize_service_request();
 	exit;
 }
 
