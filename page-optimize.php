@@ -28,7 +28,6 @@ define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanu
 // TODO: Make concat URL dir configurable
 if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUEST_URI'], 0, 9 ) ) {
 	require_once __DIR__ . '/service.php';
-	page_optimize_service_request();
 	exit;
 }
 

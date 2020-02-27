@@ -5,9 +5,6 @@ $page_optimize_types = array(
 	'js' => 'application/javascript'
 );
 
-// TODO: Provide a settings button to clear the cache
-// TODO: Should we provide a default at all? Is this a reasonable default?
-
 function page_optimize_service_request() {
 	$use_cache = defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR );
 	if ( $use_cache && ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) && ! mkdir( PAGE_OPTIMIZE_CACHE_DIR, 0775, true ) ) {
@@ -327,3 +324,5 @@ function page_optimize_get_path( $uri ) {
 
 	return $path;
 }
+
+page_optimize_service_request();
