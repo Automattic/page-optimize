@@ -143,7 +143,7 @@ function page_optimize_build_output() {
 
 	$last_modified = 0;
 	$pre_output = '';
-	$output = '';
+	ob_start();
 
 	$should_minify_css = defined( 'PAGE_OPTIMIZE_CSS_MINIFY' ) && ! empty( PAGE_OPTIMIZE_CSS_MINIFY );
 
@@ -246,11 +246,14 @@ function page_optimize_build_output() {
 		}
 
 		if ( $page_optimize_types['js'] === $mime_type ) {
-			$output .= "$buf;\n";
+			echo "$buf;\n";
 		} else {
-			$output .= "$buf";
+			echo "$buf";
 		}
 	}
+
+	$output = ob_get_contents();
+	ob_end_clean();
 
 	$headers = array(
 		'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $last_modified ) . ' GMT',
