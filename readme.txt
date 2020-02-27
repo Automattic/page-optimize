@@ -33,6 +33,12 @@ To change the cache location, set this constant to the absolute filesystem path 
 
 To disable caching, set this constant to `false`. Please note that disabling Page Optimize caching may negatively impact performance unless you are caching elsewhere.
 
+= PAGE_OPTIMIZE_CSS_MINIFY =
+
+Page Optimize has CSS Minification capabilities which are off by default.
+
+If you're using caching, and not minifying CSS elsewhere, it is recommended to enable it by setting it to `true`.
+
 == Testing ==
 
 To test features without enabling them for the entire site, you may append query params to a WordPress post or page URL. For example, to test enabling JavaScript concatenation for `https://example.com/blog/`, you can use the URL `https://example.com/blog/?concat-js=1`.
