@@ -72,6 +72,12 @@ if ! git ls-remote --exit-code --tags "$GIT_MASTER_REMOTE" "$GIT_TAG" 2>&1 >/dev
 	exit 1
 fi
 
+GIT_TAG_COMMIT="$( git ls-remote origin v0.4.1 | cut -f1 )"
+if [[ $GIT_TAG_COMMIT != $GIT_MASTER_LOCAL_COMMIT ]] ; then
+	echo -e "${RED}The '$GIT_TAG' tag does not match master.$RESET"
+	exit 1
+fi
+
 TRUNK="$PLUGIN_UPDATE_LOCATION/trunk"
 DOTORG_PLUGIN_URL="http://plugins.svn.wordpress.org/page-optimize"
 
