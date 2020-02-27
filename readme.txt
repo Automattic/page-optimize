@@ -1,4 +1,4 @@
-=== page-optimize ===
+=== Page Optimize ===
 Contributors: aidvu, bpayton
 Tags: performance
 Requires at least: 5.3
@@ -17,9 +17,7 @@ This plugin supports a few features that may improve the performance of page loa
 * Concatenate CSS
 * Concatenate JavaScript
 * Execution timing of non-critical scripts
-
-Notes:
-* Changing script execution timing can be risky and will not work well for all sites.
+    * Note: Changing script execution timing can be risky and will not work well for all sites.
 
 == Installation ==
 
