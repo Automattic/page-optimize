@@ -49,4 +49,4 @@ Supported query params:
 
 == Changelog ==
 
-* Don't queue the cache cleaning WP Cron job if we aren't caching.
+- Don't queue the cache cleaning WP Cron job if we aren't caching.
