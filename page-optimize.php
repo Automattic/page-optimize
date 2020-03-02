@@ -36,10 +36,16 @@ function page_optimize_cache_cleanup( $file_age = DAY_IN_SECONDS ) {
 		return;
 	}
 
+	// If cache is disabled when the cleanup runs, purge it
+	$using_cache = defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR );
+	if ( ! $using_cache ) {
+		$file_age = 0;
+	}
+
 	// Grab all files in the cache directory
 	$cache_files = glob( PAGE_OPTIMIZE_CACHE_DIR . '/page-optimize-cache-*' );
 
-	// Cleanup all files older than 24 hours
+	// Cleanup all files older than $file_age
 	foreach ( $cache_files as $cache_file ) {
 		if ( ! is_file( $cache_file ) ) {
 			continue;
@@ -54,7 +60,7 @@ add_action( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, 'page_optimize_cache_cleanup' 
 
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
-	page_optimize_cache_cleanup( 0 /* max file age */ );
+	page_optimize_cache_cleanup( 0 /* max file age in seconds */ );
 
 	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
 }
@@ -258,7 +264,8 @@ function page_optimize_init() {
 	}
 
 	// Schedule cache cleanup on init
-	if( ! wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB ) ) {
+	$using_cache = defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR );
+	if( $using_cache && ! wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB ) ) {
 		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
 	}
 
