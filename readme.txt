@@ -52,3 +52,11 @@ Supported query params:
 = 0.4.4 =
 * Don't queue the cache cleaning WP Cron job if we aren't caching.
 * Cleanup cache if we turned caching off or directory changed.
+
+= 0.4.3 =
+* gzip in PHP slows stuff down a bit. Simply don't do this. Any web server can handle this better.
+* also remove the output buffering, no need for that anymore
+* CSS Minification can sometimes slow things down significantly. Add constant to enable/disable.
+
+= 0.4.2 =
+* Initial release. No changes yet. :)
