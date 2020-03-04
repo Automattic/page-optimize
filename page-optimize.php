@@ -31,8 +31,8 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	exit;
 }
 
-function page_optimize_cache_cleanup( $file_age = DAY_IN_SECONDS ) {
-	if ( ! is_dir( PAGE_OPTIMIZE_CACHE_DIR ) ) {
+function page_optimize_cache_cleanup( $cache_folder, $file_age = DAY_IN_SECONDS ) {
+	if ( ! is_dir( $cache_folder ) ) {
 		return;
 	}
 
@@ -41,9 +41,13 @@ function page_optimize_cache_cleanup( $file_age = DAY_IN_SECONDS ) {
 	if ( ! $using_cache ) {
 		$file_age = 0;
 	}
+	// If the cache folder changed when the cleanup runs, purge it
+	if ( $using_cache && $cache_folder !== PAGE_OPTIMIZE_CACHE_DIR ) {
+		$file_age = 0;
+	}
 
 	// Grab all files in the cache directory
-	$cache_files = glob( PAGE_OPTIMIZE_CACHE_DIR . '/page-optimize-cache-*' );
+	$cache_files = glob( $cache_folder . '/page-optimize-cache-*' );
 
 	// Cleanup all files older than $file_age
 	foreach ( $cache_files as $cache_file ) {
@@ -60,9 +64,14 @@ add_action( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, 'page_optimize_cache_cleanup' 
 
 // Unschedule cache cleanup, and purge cache directory
 function page_optimize_deactivate() {
-	page_optimize_cache_cleanup( 0 /* max file age in seconds */ );
+	$cache_folder = false;
+	if ( defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR ) ) {
+		$cache_folder = PAGE_OPTIMIZE_CACHE_DIR;
+	}
 
-	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
+	page_optimize_cache_cleanup( $cache_folder, 0 /* max file age in seconds */ );
+
+	wp_clear_scheduled_hook( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, [ $cache_folder ] );
 }
 register_deactivation_hook( __FILE__, 'page_optimize_deactivate' );
 
@@ -264,9 +273,13 @@ function page_optimize_init() {
 	}
 
 	// Schedule cache cleanup on init
-	$using_cache = defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR );
-	if( $using_cache && ! wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB ) ) {
-		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB );
+	$cache_folder = false;
+	if ( defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR ) ) {
+		$cache_folder = PAGE_OPTIMIZE_CACHE_DIR;
+	}
+	$args = [ $cache_folder ];
+	if( $cache_folder && false === wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, $args ) ) {
+		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, $args );
 	}
 
 	require_once __DIR__ . '/settings.php';
