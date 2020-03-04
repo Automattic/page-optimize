@@ -41,7 +41,7 @@ function page_optimize_cache_cleanup( $cache_folder, $file_age = DAY_IN_SECONDS 
 	if ( ! $using_cache ) {
 		$file_age = 0;
 	}
-	// If the cache folder changed when the cleanup runs, purge it
+	// If the cache folder changed since queueing, purge it
 	if ( $using_cache && $cache_folder !== PAGE_OPTIMIZE_CACHE_DIR ) {
 		$file_age = 0;
 	}
@@ -251,6 +251,19 @@ function page_optimize_remove_concat_base_prefix( $original_fs_path ) {
 	return '/page-optimize-resource-outside-base-path/' . basename( $original_fs_path );
 }
 
+function page_optimize_schedule_cache_cleanup() {
+	$cache_folder = false;
+	if ( defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR ) ) {
+		$cache_folder = PAGE_OPTIMIZE_CACHE_DIR;
+	}
+	$args = [ $cache_folder ];
+
+	// If caching is on, and job isn't queued for current cache folder
+	if( false !== $cache_folder && false === wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, $args ) ) {
+		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, $args );
+	}
+}
+
 // Cases when we don't want to concat
 function page_optimize_bail() {
 	// Bail if we're in customizer
@@ -272,15 +285,7 @@ function page_optimize_init() {
 		return;
 	}
 
-	// Schedule cache cleanup on init
-	$cache_folder = false;
-	if ( defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR ) ) {
-		$cache_folder = PAGE_OPTIMIZE_CACHE_DIR;
-	}
-	$args = [ $cache_folder ];
-	if( $cache_folder && false === wp_next_scheduled( PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, $args ) ) {
-		wp_schedule_event( time(), 'daily', PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB, $args );
-	}
+	page_optimize_schedule_cache_cleanup();
 
 	require_once __DIR__ . '/settings.php';
 	require_once __DIR__ . '/concat-css.php';
