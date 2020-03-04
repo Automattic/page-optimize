@@ -49,4 +49,6 @@ Supported query params:
 
 == Changelog ==
 
-- Don't queue the cache cleaning WP Cron job if we aren't caching.
+= 0.4.4 =
+* Don't queue the cache cleaning WP Cron job if we aren't caching.
+* Cleanup cache if we turned caching off or directory changed.
