@@ -31,7 +31,7 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	exit;
 }
 
-function page_optimize_cache_cleanup( $cache_folder, $file_age = DAY_IN_SECONDS ) {
+function page_optimize_cache_cleanup( $cache_folder = false, $file_age = DAY_IN_SECONDS ) {
 	if ( ! is_dir( $cache_folder ) ) {
 		return;
 	}
