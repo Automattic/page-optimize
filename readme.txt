@@ -4,7 +4,7 @@ Tags: performance
 Requires at least: 5.3
 Tested up to: 5.3
 Requires PHP: 7.2
-Stable tag: 0.4.3
+Stable tag: 0.4.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,4 +49,14 @@ Supported query params:
 
 == Changelog ==
 
-Initial release. No changes yet. :)
+= 0.4.4 =
+* Don't queue the cache cleaning WP Cron job if we aren't caching.
+* Cleanup cache if we turned caching off or directory changed.
+
+= 0.4.3 =
+* gzip in PHP slows stuff down a bit. Simply don't do this. Any web server can handle this better.
+* also remove the output buffering, no need for that anymore
+* CSS Minification can sometimes slow things down significantly. Add constant to enable/disable.
+
+= 0.4.2 =
+* Initial release. No changes yet. :)
