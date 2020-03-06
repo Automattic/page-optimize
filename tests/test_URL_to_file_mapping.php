@@ -17,26 +17,37 @@ class Test_URL_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
-
-	// $site_url = null, // default site URL is determined dynamically
-	// $site_dir = ABSPATH,
-	// $plugin_url = WP_PLUGIN_URL,
-	// $plugin_dir = WP_PLUGIN_DIR,
-	// $content_url = WP_CONTENT_URL,
-	// $content_dir = WP_CONTENT_DIR
 	// TODO: Test URI and FS paths with and without trailing slashes
 
 	function test_nested_site_content_plugin_paths() {
-		$host = 'http://example.com';
 		$site_uri_path = '/subdir';
-		$site_url = "{$host}{$site_uri_path}";
-		$site_dir = __DIR__ . '/data/url-to-file-mapping/site';
+		$site_dir = '/site';
 		$content_uri_path = "{$site_uri_path}/wp-content";
-		$content_url = "{$host}{$content_uri_path}";
 		$content_dir = "$site_dir/content";
 		$plugin_uri_path = "{$content_uri_path}/plugins";
-		$plugin_url = "{$host}{$plugin_uri_path}";
 		$plugin_dir = "$content_dir/plugins";
+
+		$this->run_test(
+			'Nested site->content->plugin paths',
+			$site_uri_path,
+			$site_dir,
+			$content_uri_path,
+			$content_dir,
+			$plugin_uri_path,
+			$plugin_dir
+		);
+	}
+
+	function run_test( $label, $site_uri_path, $site_dir, $content_uri_path, $content_dir, $plugin_uri_path, $plugin_dir ) {
+		$host = 'https://example.com';
+		$site_url = "{$host}{$site_uri_path}";
+		$content_url = "{$host}{$content_uri_path}";
+		$plugin_url = "{$host}{$plugin_uri_path}";
+
+		$root = __DIR__ . '/data/url-to-file-mapping';
+		$site_dir = "{$root}{$site_dir}";
+		$content_dir = "{$root}{$content_dir}";
+		$plugin_dir = "{$root}{$plugin_dir}";
 
 		$dpm = new Page_Optimize_Dependency_Path_Mapping(
 			$site_url,
@@ -47,12 +58,12 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 			$plugin_dir
 		);
 
-		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( "$site_uri_path/exists" ), 'Cannot find file based on site URI path' );
-		$this->assertFalse( $dpm->uri_path_to_fs_path( "$site_uri_path/nonexistent" ), 'Should have failed for nonexistent file based on site URI path' );
-		$this->assertEquals( "$content_dir/exists", $dpm->uri_path_to_fs_path( "$content_uri_path/exists" ), 'Cannot find file based on content URI path' );
-		$this->assertFalse( $dpm->uri_path_to_fs_path( "$content_uri_path/nonexistent" ), 'Should have failed for nonexistent file based on content URI path' );
-		$this->assertEquals( "$plugin_dir/exists", $dpm->uri_path_to_fs_path( "$plugin_uri_path/exists" ), 'Cannot find file based on plugin URI path' );
-		$this->assertFalse( $dpm->uri_path_to_fs_path( "$plugin_uri_path/nonexistent" ), 'Should have failed for nonexistent file based on plugin URI path' );
+		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( "$site_uri_path/exists" ), "$label: Cannot find file based on site URI path" );
+		$this->assertFalse( $dpm->uri_path_to_fs_path( "$site_uri_path/nonexistent" ), "$label: Should have failed for nonexistent file based on site URI path" );
+		$this->assertEquals( "$content_dir/exists", $dpm->uri_path_to_fs_path( "$content_uri_path/exists" ), "$label: Cannot find file based on content URI path" );
+		$this->assertFalse( $dpm->uri_path_to_fs_path( "$content_uri_path/nonexistent" ), "$label: Should have failed for nonexistent file based on content URI path" );
+		$this->assertEquals( "$plugin_dir/exists", $dpm->uri_path_to_fs_path( "$plugin_uri_path/exists" ), "$label: Cannot find file based on plugin URI path" );
+		$this->assertFalse( $dpm->uri_path_to_fs_path( "$plugin_uri_path/nonexistent" ), "$label: Should have failed for nonexistent file based on plugin URI path" );
 	}
 
 	// TODO: Separate plugin path when plugin URL has same host as site URL. Exist/non-exist
