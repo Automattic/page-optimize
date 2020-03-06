@@ -19,11 +19,21 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 	// TODO: Test URI and FS paths with and without trailing slashes
 
-	function run_test( $label, $site_uri_path, $site_dir, $content_uri_path, $content_dir, $plugin_uri_path, $plugin_dir ) {
-		$host = 'https://example.com';
-		$site_url = "{$host}{$site_uri_path}";
-		$content_url = "{$host}{$content_uri_path}";
-		$plugin_url = "{$host}{$plugin_uri_path}";
+	function run_test(
+		$label,
+		$site_host,
+		$site_uri_path,
+		$site_dir,
+		$content_host,
+		$content_uri_path,
+		$content_dir,
+		$plugin_host,
+		$plugin_uri_path,
+		$plugin_dir
+	) {
+		$site_url = "{$site_host}{$site_uri_path}";
+		$content_url = "{$content_host}{$content_uri_path}";
+		$plugin_url = "{$plugin_host}{$plugin_uri_path}";
 
 		$root = __DIR__ . '/data/url-to-file-mapping';
 		$site_dir = "{$root}{$site_dir}";
@@ -73,10 +83,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Nested site->content->plugin dirs',
+			'example.com',
 			$site_uri_path,
 			$site_dir,
+			'example.com',
 			$content_uri_path,
 			$content_dir,
+			'example.com',
 			$plugin_uri_path,
 			$plugin_dir
 		);
@@ -92,10 +105,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Content and plugin dirs separate from ABSPATH and each other',
+			'example.com',
 			$site_uri_path,
 			$site_dir,
+			'example.com',
 			$content_uri_path,
 			$content_dir,
+			'example.com',
 			$plugin_uri_path,
 			$plugin_dir
 		);
@@ -111,10 +127,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Nested content->plugin dirs, separate from ABSPATH',
+			'example.com',
 			$site_uri_path,
 			$site_dir,
+			'example.com',
 			$content_uri_path,
 			$content_dir,
+			'example.com',
 			$plugin_uri_path,
 			$plugin_dir
 		);
@@ -130,20 +149,37 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Content and plugin URLs have same host but are not under the site URL',
+			'example.com',
 			$site_uri_path,
 			$site_dir,
+			'example.com',
 			$content_uri_path,
 			$content_dir,
+			'example.com',
 			$plugin_uri_path,
 			$plugin_dir
 		);
 	}
 
-	// TODO: Separate content path when plugin URL has same host as site URL. Exist/non-exist
-	// TODO: Separate content path content URL with site URL host. Exist/non-exist
-	// TODO: Plugin path under content path dir but separate from site path. Same host as site URL.
-	// TODO: Content path descended from site path
-	// TODO: Plugin URL with different host than site URL
-	// TODO: Content URL with different host than site URL
-	// TODO: Relative URLs
+	function test_content_and_plugin_urls_with_different_host() {
+		$site_uri_path = '/subdir';
+		$site_dir = '/site';
+		$content_uri_path = "{$site_uri_path}/wp-content";
+		$content_dir = "$site_dir/content";
+		$plugin_uri_path = "{$content_uri_path}/plugins";
+		$plugin_dir = "$content_dir/plugins";
+
+		$this->run_test(
+			'Content and plugin URLs have different host from site URL',
+			'example.com',
+			$site_uri_path,
+			$site_dir,
+			'example.com:1234',
+			$content_uri_path,
+			$content_dir,
+			'example.com:4321',
+			$plugin_uri_path,
+			$plugin_dir
+		);
+	}
 }
