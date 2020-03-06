@@ -1,0 +1,6 @@
+{
+    "require-dev": {
+        "phpcompatibility/phpcompatibility-wp": "*",
+        "wp-coding-standards/wpcs": "^2.2"
+    }
+}
