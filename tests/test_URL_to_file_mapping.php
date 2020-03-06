@@ -43,15 +43,15 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 			$plugin_dir
 		);
 
-		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( '/exists' ), 'cannot find file based on ABSPATH' );
-		$this->assertFalse( $dpm->uri_path_to_fs_path( '/nonexistent' ), 'should have failed for nonexistent file based on ABSPATH' );
+		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( '/exists' ), 'Cannot find file based on ABSPATH' );
+		$this->assertFalse( $dpm->uri_path_to_fs_path( '/nonexistent' ), 'Should have failed for nonexistent file based on ABSPATH' );
 
-		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( "$site_url/exists" ), 'cannot find file based on site URL' );
-		$this->assertFalse( $dpm->uri_path_to_fs_path( "$site_url/nonexistent" ), 'should have failed for nonexistent file based on site URL' );
-		$this->assertEquals( "$content_dir/exists", $dpm->uri_path_to_fs_path( "$content_url/exists" ), 'cannot find file based on content URL' );
-		$this->assertFalse( $dpm->uri_path_to_fs_path( "$content_url/nonexistent" ), 'should have failed for nonexistent file based on content URL' );
-		$this->assertEquals( "$plugin_dir/exists", $dpm->uri_path_to_fs_path( "$plugin_url/exists" ), 'cannot find file based on plugin URL' );
-		$this->assertFalse( $dpm->uri_path_to_fs_path( "$plugin_url/nonexistent" ), 'should have failed for nonexistent file based on plugin URL' );
+		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( "$site_url/exists" ), 'Cannot find file based on site URL' );
+		$this->assertFalse( $dpm->uri_path_to_fs_path( "$site_url/nonexistent" ), 'Should have failed for nonexistent file based on site URL' );
+		$this->assertEquals( "$content_dir/exists", $dpm->uri_path_to_fs_path( "$content_url/exists" ), 'Cannot find file based on content URL' );
+		$this->assertFalse( $dpm->uri_path_to_fs_path( "$content_url/nonexistent" ), 'Should have failed for nonexistent file based on content URL' );
+		$this->assertEquals( "$plugin_dir/exists", $dpm->uri_path_to_fs_path( "$plugin_url/exists" ), 'Cannot find file based on plugin URL' );
+		$this->assertFalse( $dpm->uri_path_to_fs_path( "$plugin_url/nonexistent" ), 'Should have failed for nonexistent file based on plugin URL' );
 	}
 
 	// TODO: Separate plugin path when plugin URL has same host as site URL. Exist/non-exist
