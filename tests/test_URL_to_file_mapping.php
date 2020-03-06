@@ -83,13 +83,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Nested site->content->plugin dirs',
-			'example.com',
+			'https://example.com',
 			$site_uri_path,
 			$site_dir,
-			'example.com',
+			'https://example.com',
 			$content_uri_path,
 			$content_dir,
-			'example.com',
+			'https://example.com',
 			$plugin_uri_path,
 			$plugin_dir
 		);
@@ -105,13 +105,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Content and plugin dirs separate from ABSPATH and each other',
-			'example.com',
+			'https://example.com',
 			$site_uri_path,
 			$site_dir,
-			'example.com',
+			'https://example.com',
 			$content_uri_path,
 			$content_dir,
-			'example.com',
+			'https://example.com',
 			$plugin_uri_path,
 			$plugin_dir
 		);
@@ -127,13 +127,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Nested content->plugin dirs, separate from ABSPATH',
-			'example.com',
+			'https://example.com',
 			$site_uri_path,
 			$site_dir,
-			'example.com',
+			'https://example.com',
 			$content_uri_path,
 			$content_dir,
-			'example.com',
+			'https://example.com',
 			$plugin_uri_path,
 			$plugin_dir
 		);
@@ -149,13 +149,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Content and plugin URLs have same host but are not under the site URL',
-			'example.com',
+			'https://example.com',
 			$site_uri_path,
 			$site_dir,
-			'example.com',
+			'https://example.com',
 			$content_uri_path,
 			$content_dir,
-			'example.com',
+			'https://example.com',
 			$plugin_uri_path,
 			$plugin_dir
 		);
@@ -171,13 +171,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->run_test(
 			'Content and plugin URLs have different host from site URL',
-			'example.com',
+			'https://example.com',
 			$site_uri_path,
 			$site_dir,
-			'example.com:1234',
+			'https://example.com:1234',
 			$content_uri_path,
 			$content_dir,
-			'example.com:4321',
+			'https://example.com:4321',
 			$plugin_uri_path,
 			$plugin_dir
 		);
