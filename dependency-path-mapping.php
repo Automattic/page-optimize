@@ -29,7 +29,8 @@ class Page_Optimize_Dependency_Path_Mapping {
 		if ( null === $site_url ) {
 			$site_url = is_multisite() ? get_site_url( get_current_blog_id() ) : get_site_url();
 		}
-		$this->site_url = trailingslashit( $site_url );
+		$site_url = trailingslashit( $site_url );
+		$this->site_url = $site_url;
 		$this->site_uri_path = parse_url( $site_url, PHP_URL_PATH );
 		$this->site_dir = trailingslashit( $site_dir );
 
