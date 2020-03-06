@@ -18,24 +18,25 @@
 
 	<!-- Rules: Check PHP version compatibility -->
 	<!-- https://github.com/PHPCompatibility/PHPCompatibility#sniffing-your-code-for-compatibility-with-specific-php-versions -->
-	<config name="testVersion" value="5.3-"/>
+	<config name="testVersion" value="7.0-"/>
 	<!-- https://github.com/PHPCompatibility/PHPCompatibilityWP -->
 	<rule ref="PHPCompatibilityWP"/>
 
 	<!-- Rules: WordPress Coding Standards -->
 	<!-- https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards -->
 	<!-- https://github.com/WordPress-Coding-Standards/WordPress-Coding-Standards/wiki/Customizable-sniff-properties -->
-	<config name="minimum_supported_wp_version" value="4.6"/>
+	<!-- TODO: Remove or re-enable these later -->
+	<!-- <config name="minimum_supported_wp_version" value="4.6"/>
 	<rule ref="WordPress"/>
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
 		<properties>
-			<!-- Value: replace the function, class, and variable prefixes used. Separate multiple prefixes with a comma. -->
+			--><!-- Value: replace the function, class, and variable prefixes used. Separate multiple prefixes with a comma. --><!--
 			<property name="prefixes" type="array" value="my-plugin"/>
 		</properties>
 	</rule>
 	<rule ref="WordPress.WP.I18n">
 		<properties>
-			<!-- Value: replace the text domain used. -->
+			--><!-- Value: replace the text domain used. --><!--
 			<property name="text_domain" type="array" value="my-plugin"/>
 		</properties>
 	</rule>
@@ -43,5 +44,5 @@
 		<properties>
 			<property name="blank_line_check" value="true"/>
 		</properties>
-	</rule>
+	</rule> -->
 </ruleset>
