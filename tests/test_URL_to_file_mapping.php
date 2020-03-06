@@ -19,25 +19,6 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 	// TODO: Test URI and FS paths with and without trailing slashes
 
-	function test_nested_site_content_plugin_paths() {
-		$site_uri_path = '/subdir';
-		$site_dir = '/site';
-		$content_uri_path = "{$site_uri_path}/wp-content";
-		$content_dir = "$site_dir/content";
-		$plugin_uri_path = "{$content_uri_path}/plugins";
-		$plugin_dir = "$content_dir/plugins";
-
-		$this->run_test(
-			'Nested site->content->plugin paths',
-			$site_uri_path,
-			$site_dir,
-			$content_uri_path,
-			$content_dir,
-			$plugin_uri_path,
-			$plugin_dir
-		);
-	}
-
 	function run_test( $label, $site_uri_path, $site_dir, $content_uri_path, $content_dir, $plugin_uri_path, $plugin_dir ) {
 		$host = 'https://example.com';
 		$site_url = "{$host}{$site_uri_path}";
@@ -66,7 +47,62 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 		$this->assertFalse( $dpm->uri_path_to_fs_path( "$plugin_uri_path/nonexistent" ), "$label: Should have failed for nonexistent file based on plugin URI path" );
 	}
 
-	// TODO: Separate plugin path when plugin URL has same host as site URL. Exist/non-exist
+	function test_nested_site_content_plugin_dirs_and_urls() {
+		$site_uri_path = '/subdir';
+		$site_dir = '/site';
+		$content_uri_path = "{$site_uri_path}/wp-content";
+		$content_dir = "$site_dir/content";
+		$plugin_uri_path = "{$content_uri_path}/plugins";
+		$plugin_dir = "$content_dir/plugins";
+
+		$this->run_test(
+			'Nested site->content->plugin dirs and URLs',
+			$site_uri_path,
+			$site_dir,
+			$content_uri_path,
+			$content_dir,
+			$plugin_uri_path,
+			$plugin_dir
+		);
+	}
+
+	function test_nested_site_content_plugin_dirs_and_separate_content_plugin_url() {
+		$site_uri_path = '/subdir';
+		$site_dir = '/site';
+		$content_uri_path = "/wp-content";
+		$content_dir = "$site_dir/content";
+		$plugin_uri_path = "/plugins";
+		$plugin_dir = "$content_dir/plugins";
+
+		$this->run_test(
+			'Nested site->content->plugin dirs and separate content and plugin URLs',
+			$site_uri_path,
+			$site_dir,
+			$content_uri_path,
+			$content_dir,
+			$plugin_uri_path,
+			$plugin_dir
+		);
+	}
+
+	function test_nested_site_content_plugin_urls_and_separate_content_plugin_dirs() {
+		$site_uri_path = '/subdir';
+		$site_dir = '/site';
+		$content_uri_path = "{$site_uri_path}/wp-content";
+		$content_dir = "/content";
+		$plugin_uri_path = "{$content_uri_path}/plugins";
+		$plugin_dir = "/plugins";
+
+		$this->run_test(
+			'Nested site->content->plugin URLs and separate content and plugin dirs',
+			$site_uri_path,
+			$site_dir,
+			$content_uri_path,
+			$content_dir,
+			$plugin_uri_path,
+			$plugin_dir
+		);
+	}
 
 	// TODO: Separate content path when plugin URL has same host as site URL. Exist/non-exist
 	// TODO: Separate content path content URL with site URL host. Exist/non-exist
