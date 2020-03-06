@@ -27,12 +27,13 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 	// TODO: Test URI and FS paths with and without trailing slashes
 
 	function test_nested_site_content_plugin_paths() {
-		$site_url = 'http://example.com';
+		$site_uri_path = '/subdir';
+		$site_url = "http://example.com{$site_uri_path}";
 		$site_dir = __DIR__ . '/data/url-to-file-mapping/site';
-		$content_uri_path = '/wp-content';
+		$content_uri_path = "{$site_uri_path}/wp-content";
 		$content_url = "{$site_url}{$content_uri_path}";
 		$content_dir = "$site_dir/content";
-		$plugin_uri_path = '/plugins';
+		$plugin_uri_path = "{$content_uri_path}/plugins";
 		$plugin_url = "{$content_url}{$plugin_uri_path}";
 		$plugin_dir = "$content_dir/plugins";
 
