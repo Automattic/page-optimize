@@ -19,6 +19,10 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 	// TODO: Test URI and FS paths with and without trailing slashes
 
+	/**
+	 * @dataProvider provide_test_data
+	 * @test
+	 */
 	function run_test(
 		$label,
 		$site_host,
@@ -73,113 +77,68 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 		$this->assertFalse( $dpm->uri_path_to_fs_path( "$plugin_uri_path/nonexistent" ), "$label: Should have failed for nonexistent file based on plugin URI path" );
 	}
 
-	function test_nested_site_content_plugin_dirs() {
-		$site_uri_path = '/subdir';
-		$site_dir = '/site';
-		$content_uri_path = "{$site_uri_path}/wp-content";
-		$content_dir = "$site_dir/content";
-		$plugin_uri_path = "{$content_uri_path}/plugins";
-		$plugin_dir = "$content_dir/plugins";
-
-		$this->run_test(
-			'Nested site->content->plugin dirs',
-			'https://example.com',
-			$site_uri_path,
-			$site_dir,
-			'https://example.com',
-			$content_uri_path,
-			$content_dir,
-			'https://example.com',
-			$plugin_uri_path,
-			$plugin_dir
-		);
-	}
-
-	function test_completely_separate_content_and_plugin_dirs() {
-		$site_uri_path = '/subdir';
-		$site_dir = '/site';
-		$content_uri_path = "{$site_uri_path}/wp-content";
-		$content_dir = "/content";
-		$plugin_uri_path = "{$content_uri_path}/plugins";
-		$plugin_dir = "/plugins";
-
-		$this->run_test(
-			'Content and plugin dirs separate from ABSPATH and each other',
-			'https://example.com',
-			$site_uri_path,
-			$site_dir,
-			'https://example.com',
-			$content_uri_path,
-			$content_dir,
-			'https://example.com',
-			$plugin_uri_path,
-			$plugin_dir
-		);
-	}
-
-	function test_nested_content_and_plugin_dirs_separate_from_site_dir() {
-		$site_uri_path = '/subdir';
-		$site_dir = '/site';
-		$content_uri_path = "{$site_uri_path}/wp-content";
-		$content_dir = "/content";
-		$plugin_uri_path = "{$content_uri_path}/plugins";
-		$plugin_dir = "$content_dir/plugins";
-
-		$this->run_test(
-			'Nested content->plugin dirs, separate from ABSPATH',
-			'https://example.com',
-			$site_uri_path,
-			$site_dir,
-			'https://example.com',
-			$content_uri_path,
-			$content_dir,
-			'https://example.com',
-			$plugin_uri_path,
-			$plugin_dir
-		);
-	}
-
-	function test_content_and_plugin_urls_not_nested_under_site_url() {
-		$site_uri_path = '/subdir';
-		$site_dir = '/site';
-		$content_uri_path = "/wp-content";
-		$content_dir = "$site_dir/content";
-		$plugin_uri_path = "/plugins";
-		$plugin_dir = "$content_dir/plugins";
-
-		$this->run_test(
-			'Content and plugin URLs have same host but are not under the site URL',
-			'https://example.com',
-			$site_uri_path,
-			$site_dir,
-			'https://example.com',
-			$content_uri_path,
-			$content_dir,
-			'https://example.com',
-			$plugin_uri_path,
-			$plugin_dir
-		);
-	}
-
-	function test_content_and_plugin_urls_with_different_host() {
-		$site_uri_path = '/subdir';
-		$site_dir = '/site';
-		$content_uri_path = "{$site_uri_path}/wp-content";
-		$content_dir = "$site_dir/content";
-		$plugin_uri_path = "{$content_uri_path}/plugins";
-		$plugin_dir = "$content_dir/plugins";
-
-		$this->run_test(
-			'Content and plugin URLs have different host from site URL',
-			'https://example.com',
-			$site_uri_path,
-			$site_dir,
-			'https://example.com:1234',
-			$content_uri_path,
-			$content_dir,
-			'https://example.com:4321',
-			$plugin_uri_path,
-			$plugin_dir
+	function provide_test_data() {
+		return array(
+			array(
+				'Nested site->content->plugin dirs',
+				'https://example.com',
+				'/subdir',
+				'/site',
+				'https://example.com',
+				'/subdir/wp-content',
+				'/site/content',
+				'https://example.com',
+				'/subdir/wp-content/plugins',
+				'/site/content/plugins',
+			),
+			array(
+				'Nested content->plugin dirs, separate from ABSPATH',
+				'https://example.com',
+				'/subdir',
+				'/site',
+				'https://example.com',
+				'/subdir/wp-content',
+				'/content',
+				'https://example.com',
+				'/subdir/wp-content/plugins',
+				'/content/plugins'
+			),
+			array(
+				'Content and plugin dirs separate from ABSPATH and each other',
+				'https://example.com',
+				'/subdir',
+				'/site',
+				'https://example.com',
+				'/subdir/wp-content',
+				'/content',
+				'https://example.com',
+				'/subdir/wp-content/plugins',
+				'/plugins'
+			),
+			array(
+				'Content and plugin URLs have same host but are not under the site URL',
+				'https://example.com',
+				'/subdir',
+				'/site',
+				'https://example.com',
+				'/wp-content', // Not descended from site URL path
+				'/site/content',
+				'https://example.com',
+				'/wp-content/plugins', // Not descended from site URL path
+				'/site/content/plugins'
+			),
+			array(
+				'Content and plugin URLs have different host from site URL',
+				'https://example.com',
+				'/subdir',
+				'/site',
+				'https://example.com:1234',
+				'/subdir/wp-content',
+				'/site/content',
+				'https://other1.com',
+				'/subdir/wp-content/plugins',
+				'/site/content/plugins',
+			),
 		);
 	}
 }
