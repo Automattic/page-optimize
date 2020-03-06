@@ -41,13 +41,29 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( "$site_uri_path/exists" ), "$label: Cannot find file based on site URI path" );
 		$this->assertFalse( $dpm->uri_path_to_fs_path( "$site_uri_path/nonexistent" ), "$label: Should have failed for nonexistent file based on site URI path" );
-		$this->assertEquals( "$content_dir/exists", $dpm->uri_path_to_fs_path( "$content_uri_path/exists" ), "$label: Cannot find file based on content URI path" );
+
+		$actual_content_path = $dpm->uri_path_to_fs_path( "$content_uri_path/exists" );
+		if ( 0 === strpos( $content_url, $site_url ) ) {
+			// Content is under site URL. We expect this path to resolve.
+			$this->assertEquals( "$content_dir/exists", $actual_content_path, "$label: Cannot find file based on content URI path" );
+		} else {
+			// Content is not under site URL. We expect a resolution failure.
+			$this->assertFalse( $actual_content_path, "$label: Should have failed for content URI path outside of site URL" );
+		}
 		$this->assertFalse( $dpm->uri_path_to_fs_path( "$content_uri_path/nonexistent" ), "$label: Should have failed for nonexistent file based on content URI path" );
-		$this->assertEquals( "$plugin_dir/exists", $dpm->uri_path_to_fs_path( "$plugin_uri_path/exists" ), "$label: Cannot find file based on plugin URI path" );
+
+		$actual_plugin_path = $dpm->uri_path_to_fs_path( "$plugin_uri_path/exists" );
+		if ( 0 === strpos( $plugin_url, $site_url ) ) {
+			// Plugins are under site URL. We expect this path to resolve.
+			$this->assertEquals( "$plugin_dir/exists", $actual_plugin_path, "$label: Cannot find file based on plugin URI path" );
+		} else {
+			// Plugins are not under site URL. We expect a resolution failure.
+			$this->assertFalse( $actual_plugin_path, "$label: Should have failed for plugin URI path outside of site URL" );
+		}
 		$this->assertFalse( $dpm->uri_path_to_fs_path( "$plugin_uri_path/nonexistent" ), "$label: Should have failed for nonexistent file based on plugin URI path" );
 	}
 
-	function test_nested_site_content_plugin_dirs_and_urls() {
+	function test_nested_site_content_plugin_dirs() {
 		$site_uri_path = '/subdir';
 		$site_dir = '/site';
 		$content_uri_path = "{$site_uri_path}/wp-content";
@@ -56,7 +72,7 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 		$plugin_dir = "$content_dir/plugins";
 
 		$this->run_test(
-			'Nested site->content->plugin dirs and URLs',
+			'Nested site->content->plugin dirs',
 			$site_uri_path,
 			$site_dir,
 			$content_uri_path,
@@ -66,26 +82,7 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 		);
 	}
 
-	function test_nested_site_content_plugin_dirs_and_separate_content_plugin_url() {
-		$site_uri_path = '/subdir';
-		$site_dir = '/site';
-		$content_uri_path = "/wp-content";
-		$content_dir = "$site_dir/content";
-		$plugin_uri_path = "/plugins";
-		$plugin_dir = "$content_dir/plugins";
-
-		$this->run_test(
-			'Nested site->content->plugin dirs and separate content and plugin URLs',
-			$site_uri_path,
-			$site_dir,
-			$content_uri_path,
-			$content_dir,
-			$plugin_uri_path,
-			$plugin_dir
-		);
-	}
-
-	function test_nested_site_content_plugin_urls_and_separate_content_plugin_dirs() {
+	function test_completely_separate_content_and_plugin_dirs() {
 		$site_uri_path = '/subdir';
 		$site_dir = '/site';
 		$content_uri_path = "{$site_uri_path}/wp-content";
@@ -94,7 +91,45 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 		$plugin_dir = "/plugins";
 
 		$this->run_test(
-			'Nested site->content->plugin URLs and separate content and plugin dirs',
+			'Content and plugin dirs separate from ABSPATH and each other',
+			$site_uri_path,
+			$site_dir,
+			$content_uri_path,
+			$content_dir,
+			$plugin_uri_path,
+			$plugin_dir
+		);
+	}
+
+	function test_nested_content_and_plugin_dirs_separate_from_site_dir() {
+		$site_uri_path = '/subdir';
+		$site_dir = '/site';
+		$content_uri_path = "{$site_uri_path}/wp-content";
+		$content_dir = "/content";
+		$plugin_uri_path = "{$content_uri_path}/plugins";
+		$plugin_dir = "$content_dir/plugins";
+
+		$this->run_test(
+			'Nested content->plugin dirs, separate from ABSPATH',
+			$site_uri_path,
+			$site_dir,
+			$content_uri_path,
+			$content_dir,
+			$plugin_uri_path,
+			$plugin_dir
+		);
+	}
+
+	function test_content_and_plugin_urls_not_nested_under_site_url() {
+		$site_uri_path = '/subdir';
+		$site_dir = '/site';
+		$content_uri_path = "/wp-content";
+		$content_dir = "$site_dir/content";
+		$plugin_uri_path = "/plugins";
+		$plugin_dir = "$content_dir/plugins";
+
+		$this->run_test(
+			'Content and plugin URLs have same host but are not under the site URL',
 			$site_uri_path,
 			$site_dir,
 			$content_uri_path,
@@ -106,7 +141,6 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 
 	// TODO: Separate content path when plugin URL has same host as site URL. Exist/non-exist
 	// TODO: Separate content path content URL with site URL host. Exist/non-exist
-	// TODO: Site root path. Exist/non-exist
 	// TODO: Plugin path under content path dir but separate from site path. Same host as site URL.
 	// TODO: Content path descended from site path
 	// TODO: Plugin URL with different host than site URL
