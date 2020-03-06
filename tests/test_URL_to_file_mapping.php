@@ -46,8 +46,8 @@ class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
 			$plugin_dir
 		);
 
-		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( '/exists' ), 'Cannot find file based on site URI path' );
-		$this->assertFalse( $dpm->uri_path_to_fs_path( '/nonexistent' ), 'Should have failed for nonexistent file based on site URI path' );
+		$this->assertEquals( "$site_dir/exists", $dpm->uri_path_to_fs_path( "$site_uri_path/exists" ), 'Cannot find file based on site URI path' );
+		$this->assertFalse( $dpm->uri_path_to_fs_path( "$site_uri_path/nonexistent" ), 'Should have failed for nonexistent file based on site URI path' );
 		$this->assertEquals( "$content_dir/exists", $dpm->uri_path_to_fs_path( "$content_uri_path/exists" ), 'Cannot find file based on content URI path' );
 		$this->assertFalse( $dpm->uri_path_to_fs_path( "$content_uri_path/nonexistent" ), 'Should have failed for nonexistent file based on content URI path' );
 		$this->assertEquals( "$plugin_dir/exists", $dpm->uri_path_to_fs_path( "$plugin_uri_path/exists" ), 'Cannot find file based on plugin URI path' );
