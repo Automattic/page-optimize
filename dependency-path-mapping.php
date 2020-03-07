@@ -71,14 +71,8 @@ class Page_Optimize_Dependency_Path_Mapping {
 		if ( empty( $src_parts['host'] ) ) {
 			// With no host, this is a path relative to the WordPress root
 			$fs_path = "{$this->site_dir}{$path}";
-			if ( file_exists( $fs_path ) ) {
-				// Get rid of duplicate slashes without resolving symlinks.
-				// We need to avoid resolving symlinks to be able to provide actual
-				// and relative FS paths to the concat script.
-				// TODO: Review and improve this explanation.
-				$fs_path = dirname( $fs_path ) . '/' . basename( $fs_path );
-			}
-			return false;
+
+			return file_exists( $fs_path ) ? $fs_path : false;
 		}
 
 		return $this->uri_path_to_fs_path( $path );

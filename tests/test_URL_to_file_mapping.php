@@ -13,6 +13,28 @@ class Test_URL_To_File_Mapping extends PHPUnit\Framework\TestCase {
 	// TODO: Plugin URL with different host than site URL
 	// TODO: Content URL with different host than site URL
 	// TODO: Relative URLs
+
+	function test_abspath_resolution() {
+		$site_url = 'https://example.com/site';
+		$site_dir = __DIR__ . '/data/url-to-file-mapping/site';
+		$content_url = 'https://example.com/site/wp-content';
+		$content_dir = "$site_dir/content";
+		$plugin_url = 'https://example.com/site/wp-content/plugins';
+		$plugin_dir = "$content_dir/plugin";
+
+		$dpm = new Page_Optimize_Dependency_Path_Mapping(
+			$site_url,
+			$site_dir,
+			$content_url,
+			$content_dir,
+			$plugin_url,
+			$plugin_dir
+		);
+
+		// TODO: Remove this call to realpath() when we fix dependency_src_to_fs_path() to stop doubling path separators
+		$this->assertEquals( "$site_dir/exists", realpath( $dpm->dependency_src_to_fs_path( '/exists' ) ) );
+		$this->assertFalse( $dpm->dependency_src_to_fs_path( '/nonexistent' ) );
+	}
 }
 
 class Test_URI_Path_To_File_Mapping extends PHPUnit\Framework\TestCase {
