@@ -19,7 +19,7 @@ class Test_URL_To_File_Mapping extends PHPUnit\Framework\TestCase {
 		$site_dir = __DIR__ . '/data/url-to-file-mapping';
 		$content_url = 'https://example.com/site/wp-content';
 		$content_dir = "$site_dir/content";
-		$plugins_url = 'https://example.com/site/wp-content/plugins';
+		$plugin_url = 'https://example.com/site/wp-content/plugins';
 		$plugin_dir = "$content_dir/plugin";
 
 		$dpm = new Page_Optimize_Dependency_Path_Mapping(
