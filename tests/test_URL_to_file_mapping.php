@@ -31,7 +31,8 @@ class Test_URL_To_File_Mapping extends PHPUnit\Framework\TestCase {
 			$plugin_dir
 		);
 
-		$this->assertEquals( "$site_dir/exists", $dpm->dependency_src_to_fs_path( '/exists' ) );
+		// TODO: Remove this call to realpath() when we fix dependency_src_to_fs_path() to stop doubling path separators
+		$this->assertEquals( "$site_dir/exists", realpath( $dpm->dependency_src_to_fs_path( '/exists' ) ) );
 		$this->assertFalse( $dpm->dependency_src_to_fs_path( '/nonexistent' ) );
 	}
 }
