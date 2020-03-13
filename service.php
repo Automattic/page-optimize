@@ -188,7 +188,7 @@ function page_optimize_build_output() {
 		}
 
 		if ( 'text/css' == $mime_type ) {
-			$dirpath = $subdir_path_prefix . dirname( $uri );
+			$dirpath = '/' . ltrim( $subdir_path_prefix . dirname( $uri ), '/' );
 
 			// url(relative/path/to/file) -> url(/absolute/and/not/relative/path/to/file)
 			$buf = page_optimize_relative_path_replace( $buf, $dirpath );
