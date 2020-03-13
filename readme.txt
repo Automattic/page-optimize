@@ -3,8 +3,8 @@ Contributors: aidvu, bpayton
 Tags: performance
 Requires at least: 5.3
 Tested up to: 5.3
-Requires PHP: 7.2
-Stable tag: 0.4.4
+Requires PHP: 7.0
+Stable tag: 0.4.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,10 @@ Supported query params:
 * `load-mode-js` controls how non-critical JavaScript are loaded. Values: 'defer' for [deferred](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-defer), 'async' for [async loading](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-async), any other value indicates the feature should be disabled.
 
 == Changelog ==
+
+= 0.4.5 =
+* Force absolute paths for CSS replacements.
+* Lower required PHP version to 7.0.
 
 = 0.4.4 =
 * Don't queue the cache cleaning WP Cron job if we aren't caching.
