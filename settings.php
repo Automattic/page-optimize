@@ -65,7 +65,7 @@ function page_optimize_settings_field_js_load_mode( $args ) {
 		</label>
 
 		<p class="description">
-			<?php _e( 'You can choose the execution mode of the concatenated JavaScript. This option might break your site, so use carefully.', page_optimize_get_text_domain() ); ?>
+			<?php _e( 'You can choose the execution mode of the concatenated JavaScript. <strong>This option might break your site, so use carefully.</strong>', page_optimize_get_text_domain() ); ?>
 		</p>
 	</fieldset>
 	<?php
@@ -169,7 +169,7 @@ function page_optimize_settings_init() {
 	);
 	add_settings_field(
 		'page_optimize_js_load_mode',
-		__( 'Non-critical script execution mode', page_optimize_get_text_domain() ),
+		__( 'Non-critical script execution mode (experimental)', page_optimize_get_text_domain() ),
 		'page_optimize_settings_field_js_load_mode',
 		'page-optimize',
 		'page_optimize_settings_section'
