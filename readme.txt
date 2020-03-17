@@ -4,7 +4,7 @@ Tags: performance
 Requires at least: 5.3
 Tested up to: 5.3
 Requires PHP: 7.0
-Stable tag: 0.4.5
+Stable tag: 0.4.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,7 +49,7 @@ Supported query params:
 
 == Changelog ==
 
-= 0.4.5 =
+= 0.4.5, 0.4.6 =
 * Force absolute paths for CSS replacements.
 * Lower required PHP version to 7.0.
 
