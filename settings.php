@@ -77,9 +77,6 @@ function page_optimize_settings_field_css( $args ) {
 		<label>
 			<input type="checkbox" id="page_optimize-css" name="page_optimize-css" value="1" <?php checked( get_option( 'page_optimize-css' ) ); ?>>
 			<?php _e( 'Concatenate styles', page_optimize_get_text_domain() ); ?>
-			<p class="description">
-				<?php _e( 'CSS minification is not enabled by default. Check `PAGE_OPTIMIZE_CSS_MINIFY` constant.', page_optimize_get_text_domain() ); ?>
-			</p>
 		</label>
 		<br>
 		<label for="page_optimize-css-exclude">
