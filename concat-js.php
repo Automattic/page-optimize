@@ -174,6 +174,26 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 				$javascripts[ $level ]['paths'][] = $js_url_parsed['path'];
 				$javascripts[ $level ]['handles'][] = $handle;
 
+				// Track async/defer attributes
+				//
+				// This is helpful in the case where the group only has one
+				// entry, causing it to use the original URL.  Prior to this
+				// it would remove async/defer attributes when this happened.
+				//
+				// That condition was being triggered by index.js in the
+				// twentytwenty theme.
+				if (
+					isset( $this->registered[ $handle ]->extra['async'] )
+					&& (int) $this->registered[ $handle ]->extra['async'] === 1 ) {
+					$javascripts[ $level ]['async'][ $handle ] = true;
+				}
+
+				if (
+					isset( $this->registered[ $handle ]->extra['defer'] )
+					&& (int) $this->registered[ $handle ]->extra['defer'] === 1 ) {
+					$javascripts[ $level ]['defer'][ $handle ] = true;
+				}
+
 			} else {
 				$level ++;
 				$javascripts[ $level ]['type'] = 'do_item';
@@ -247,6 +267,18 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 					$handles = implode( ',', $js_array['handles'] );
 
 					$load_mode = page_optimize_load_mode_js();
+
+					// If we are not going through the concat, then make sure
+					// we keep any original async/defer options.
+					if ( strpos( '_static', $href ) === false ) {
+						if ( isset( $js_array['async'][ $handles ] ) ) {
+							$load_mode .= ' async ';
+						}
+
+						if ( isset( $js_array['defer'][ $handles ] ) ) {
+							$load_mode .= ' defer ';
+						}
+					}
 
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo "<script data-handles='" . esc_attr( $handles ) . "' $load_mode type='text/javascript' src='$href'></script>\n";
