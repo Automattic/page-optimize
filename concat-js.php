@@ -249,10 +249,20 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 					$load_mode = page_optimize_load_mode_js();
 
 					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-						echo "<script data-handles='" . esc_attr( $handles ) . "' $load_mode type='text/javascript' src='$href'></script>\n";
+						$tag = "<script data-handles='" . esc_attr( $handles ) . "' $load_mode type='text/javascript' src='$href'></script>\n";
 					} else {
-						echo "<script type='text/javascript' $load_mode src='$href'></script>\n";
+						$tag = "<script type='text/javascript' $load_mode src='$href'></script>\n";
 					}
+
+					if ( is_array( $js_array['handles'] ) && count( $js_array['handles'] ) === 1 ) {
+						// Because we have a single script, let's apply the `script_loader_tag` filter as core does in `do_item()`.
+						// That way, we reduce interfere less with plugin and theme script filtering. For example, without this filter,
+						// there is a case where we block the TwentyTwenty theme from adding async/defer attributes.
+						// https://github.com/Automattic/page-optimize/pull/44
+						$tag = apply_filters( 'script_loader_tag', $tag, $js_array['handles'], $href );
+					}
+
+					echo $tag;
 				}
 
 				if ( isset( $js_array['extras']['after'] ) ) {
