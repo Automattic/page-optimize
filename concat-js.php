@@ -259,7 +259,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 						// That way, we reduce interfere less with plugin and theme script filtering. For example, without this filter,
 						// there is a case where we block the TwentyTwenty theme from adding async/defer attributes.
 						// https://github.com/Automattic/page-optimize/pull/44
-						$tag = apply_filters( 'script_loader_tag', $tag, $js_array['handles'], $href );
+						$tag = apply_filters( 'script_loader_tag', $tag, $js_array['handles'][0], $href );
 					}
 
 					echo $tag;
