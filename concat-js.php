@@ -59,6 +59,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$javascripts = array();
 		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
+		$site_uri_path = page_optimize_get_uri_path( $siteurl );
 		$this->all_deps( $handles );
 		$level = 0;
 
@@ -171,7 +172,9 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 					$javascripts[ $level ]['type'] = 'concat';
 				}
 
-				$javascripts[ $level ]['paths'][] = $js_url_parsed['path'];
+				$js_uri_path = page_optimize_remove_uri_prefix( $site_uri_path, $js_url_parsed['path'] );
+
+				$javascripts[ $level ]['paths'][] = $js_uri_path;
 				$javascripts[ $level ]['handles'][] = $handle;
 
 			} else {
@@ -211,7 +214,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 				if ( isset( $js_array['paths'] ) && count( $js_array['paths'] ) > 1 ) {
 					$fs_paths = array();
 					foreach ( $js_array['paths'] as $js_url ) {
-						$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $js_url );
+						$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $site_uri_path . $js_url );
 					}
 
 					$mtime = max( array_map( 'filemtime', $fs_paths ) );

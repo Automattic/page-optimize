@@ -39,6 +39,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$stylesheets = array();
 		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
+		$site_uri_path = page_optimize_get_uri_path( $siteurl );
 
 		$this->all_deps( $handles );
 
@@ -136,7 +137,9 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					$media = 'all';
 				}
 
-				$stylesheets[ $concat_group ][ $media ][ $handle ] = $css_url_parsed['path'];
+				$css_uri_path = page_optimize_remove_uri_prefix( $site_uri_path, $css_url_parsed['path'] );
+
+				$stylesheets[ $concat_group ][ $media ][ $handle ] = $css_uri_path;
 				$this->done[] = $handle;
 			} else {
 				$stylesheet_group_index ++;
@@ -158,7 +161,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 				} elseif ( count( $css ) > 1 ) {
 					$fs_paths = array();
 					foreach ( $css as $css_uri_path ) {
-						$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $css_uri_path );
+						$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $site_uri_path . $css_uri_path );
 					}
 
 					$mtime = max( array_map( 'filemtime', $fs_paths ) );

@@ -26,7 +26,7 @@ define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanu
 // TODO: Copy tests from nginx-http-concat and/or write them
 
 // TODO: Make concat URL dir configurable
-if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUEST_URI'], 0, 9 ) ) {
+if ( isset( $_SERVER['REQUEST_URI'] ) && false !== strpos( $_SERVER['REQUEST_URI'], '/_static/??' ) ) {
 	require_once __DIR__ . '/service.php';
 	exit;
 }
@@ -211,6 +211,28 @@ function page_optimize_starts_with( $prefix, $str ) {
 	}
 
 	return substr( $str, 0, $prefix_length ) === $prefix;
+}
+
+/**
+ * Returns the uri path from the url.
+ */
+function page_optimize_get_uri_path( $url ) {
+	$path = trailingslashit( parse_url( $url, PHP_URL_PATH ) );
+	return $path == '/' ? '' : $path;
+}
+
+/**
+ * Removes the path prefix from the uri string.
+ */
+function page_optimize_remove_uri_prefix( $prefix, $uri ) {
+	if ( empty( $prefix ) ) {
+		return $uri;
+	}
+	if ( ! page_optimize_starts_with( $prefix, $uri ) ) {
+		return $uri;
+	}
+
+	return '/' . ltrim( substr( $uri, strlen($prefix) ), '/' );
 }
 
 /**
