@@ -278,7 +278,7 @@ function page_optimize_bail() {
 	}
 
 	// Bail if we're editing pages in Brizy Editor
-	if ( class_exists( 'Brizy_Editor' ) && ( isset( $_GET[ Brizy_Editor::prefix( '-edit-iframe' ) ] ) || isset( $_GET[ Brizy_Editor::prefix( '-edit' ) ] ) ) ) {
+	if ( class_exists( 'Brizy_Editor' ) && ( method_exists( 'Brizy_Editor', 'prefix' ) ) && ( isset( $_GET[ Brizy_Editor::prefix( '-edit-iframe' ) ] ) || isset( $_GET[ Brizy_Editor::prefix( '-edit' ) ] ) ) ) {
 		return true;
 	}
 
