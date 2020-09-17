@@ -50,7 +50,7 @@ Supported query params:
 == Changelog ==
 
 = 0.5.1 =
-* Bail when editing pages in Brizy Editor
+* Bail when editing pages in Brizy Editor (it errors when JavaScript load mode is `async`).
 
 = 0.5.0 =
 * Apply the `script_loader_tag` filter for scripts that are concatenate-able but have no neighbors to concatenate with. This fixes a case where the TwentyTwenty theme wanted to apply a `defer` attribute to its script but was never given the opportunity.
