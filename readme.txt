@@ -2,9 +2,9 @@
 Contributors: aidvu, bpayton
 Tags: performance
 Requires at least: 5.3
-Tested up to: 5.4
+Tested up to: 5.5.1
 Requires PHP: 7.0
-Stable tag: 0.5.0
+Stable tag: 0.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ Supported query params:
 * `load-mode-js` controls how non-critical JavaScript are loaded. Values: 'defer' for [deferred](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-defer), 'async' for [async loading](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-async), any other value indicates the feature should be disabled.
 
 == Changelog ==
+
+= 0.5.1 =
+* Bail when editing pages in Brizy Editor (it errors when JavaScript load mode is `async`).
 
 = 0.5.0 =
 * Apply the `script_loader_tag` filter for scripts that are concatenate-able but have no neighbors to concatenate with. This fixes a case where the TwentyTwenty theme wanted to apply a `defer` attribute to its script but was never given the opportunity.
