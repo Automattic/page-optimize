@@ -141,6 +141,7 @@ function page_optimize_build_output() {
 	}
 	unset( $request_path, $_static_index );
 
+	global $pre_output;
 	$last_modified = 0;
 	$pre_output = '';
 	$output = '';
