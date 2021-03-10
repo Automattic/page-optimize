@@ -298,10 +298,11 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 function page_optimize_js_concat_init() {
 	global $wp_scripts;
 
-	$wp_scripts = new Page_Optimize_JS_Concat( $wp_scripts );
-	$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
+	if ( ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) ) {
+		$wp_scripts = new Page_Optimize_JS_Concat( $wp_scripts );
+		$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
+	}
 }
 
-if ( ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) ) {
-	add_action( 'init', 'page_optimize_js_concat_init' );
-}
+add_action( 'init', 'page_optimize_js_concat_init' );
+
