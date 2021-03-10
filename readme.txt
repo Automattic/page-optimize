@@ -2,9 +2,9 @@
 Contributors: aidvu, bpayton
 Tags: performance
 Requires at least: 5.3
-Tested up to: 5.5.1
+Tested up to: 5.7
 Requires PHP: 7.0
-Stable tag: 0.5.1
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ Supported query params:
 * `load-mode-js` controls how non-critical JavaScript are loaded. Values: 'defer' for [deferred](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-defer), 'async' for [async loading](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-async), any other value indicates the feature should be disabled.
 
 == Changelog ==
+
+= 0.6.0
+* Delay decision to concat so other plugins can have a say.
 
 = 0.5.1 =
 * Bail when editing pages in Brizy Editor (it errors when JavaScript load mode is `async`).

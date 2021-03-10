@@ -215,10 +215,11 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 function page_optimize_css_concat_init() {
 	global $wp_styles;
 
-	$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
-	$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
+	if ( page_optimize_should_concat_css() ) {
+		$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
+		$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
+	}
 }
 
-if ( page_optimize_should_concat_css() ) {
-	add_action( 'init', 'page_optimize_css_concat_init' );
-}
+add_action( 'init', 'page_optimize_css_concat_init' );
+
