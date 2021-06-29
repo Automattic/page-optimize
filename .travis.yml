@@ -19,13 +19,21 @@ cache:
 jobs:
   include:
     - php: 7.4
-      env: WP_VERSION=latest
+      env:
+        - WP_VERSION=latest
+        - WP_CORE_DIR=/tmp/wordpress/
     - php: 7.3
-      env: WP_VERSION=latest
+      env:
+        - WP_VERSION=latest
+        - WP_CORE_DIR=/tmp/wordpress/
     - php: 5.6
       env: WP_TRAVISCI=phpcs
 
+install:
+  - sudo apt-get install -y --force-yes nginx-extras
+
 before_script:
+  - set -eo pipefail
   - export PATH="$HOME/.config/composer/vendor/bin:$PATH"
   - |
     if [ -f ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/xdebug.ini ]; then
@@ -37,6 +45,23 @@ before_script:
     if [[ ! -z "$WP_VERSION" ]] ; then
       bash bin/install-wp-tests.sh wordpress_test root '' localhost $WP_VERSION
       composer global require "phpunit/phpunit=4.8.*|5.7.*"
+      composer global require "wp-cli/wp-cli-bundle"
+
+      mysqladmin create wordpress_integration --user="root" --password="" --host=localhost
+
+      # Add 'nobody' group in case it doesn't yet exist. Debian has 'nogroup', but php-fpm init expects 'nobody'.
+      sudo groupadd -f nobody
+      sudo ~/.phpenv/versions/$TRAVIS_PHP_VERSION/etc/init.d/php-fpm start
+      sudo cp tests/nginx.conf /etc/nginx/nginx.conf
+      sudo nginx -s reload
+      wp config create --path="${WP_CORE_DIR}" --dbname=wordpress_integration --dbuser=root --dbpass=''
+      wp core install --path="${WP_CORE_DIR}" --url="http://localhost/" --title="WP Test" --admin_user=admin --admin_password=password --admin_email='admin@example.org' --skip-email
+      mkdir -p ${WP_CORE_DIR}wp-content/mu-plugins
+      cp -r tests/mu-plugins/* ${WP_CORE_DIR}wp-content/mu-plugins/
+      mkdir -p ${WP_CORE_DIR}wp-content/plugins/page-optimize/
+      cp -r ./* ${WP_CORE_DIR}wp-content/plugins/page-optimize/
+      wp plugin activate page-optimize --path="${WP_CORE_DIR}"
+      wp theme install twentytwenty --activate --path="${WP_CORE_DIR}"
     fi
   - |
     if [[ "$WP_TRAVISCI" == "phpcs" ]] ; then
@@ -47,8 +72,8 @@ before_script:
 script:
   - |
     if [[ ! -z "$WP_VERSION" ]] ; then
-      phpunit
-      WP_MULTISITE=1 phpunit
+      phpunit --verbose
+      WP_MULTISITE=1 phpunit --verbose
     fi
   - |
     if [[ "$WP_TRAVISCI" == "phpcs" ]] ; then
