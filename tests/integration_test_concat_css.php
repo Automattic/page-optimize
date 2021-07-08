@@ -14,8 +14,7 @@ class Test_Css_Concat_Output extends PHPUnit\Framework\TestCase {
 	}
 
 	function test_concat_output_with_concat_exclusions() {
-		// TODO: Enable this test when we fix https://github.com/Automattic/page-optimize/pull/62
-		$this->run_test_to_assert_concat_order( 'http://127.0.0.1/?exclude_from_css_concat=test-1' );
+		$this->run_test_to_assert_concat_order( 'http://127.0.0.1/?exclude_from_css_concat=test-1,test-4' );
 	}
 
 	function run_test_to_assert_concat_order( $page_url ) {
