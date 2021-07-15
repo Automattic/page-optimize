@@ -31,6 +31,8 @@ if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUE
 	exit;
 }
 
+require_once __DIR__ . '/settings.php';
+
 function page_optimize_cache_cleanup( $cache_folder = false, $file_age = DAY_IN_SECONDS ) {
 	if ( ! is_dir( $cache_folder ) ) {
 		return;
@@ -100,7 +102,8 @@ function page_optimize_should_concat_js() {
 		return $_GET['concat-js'] !== '0';
 	}
 
-	return !! get_option( 'page_optimize-js', page_optimize_js_default() );
+	$should_concat = !! get_option( 'page_optimize-js', page_optimize_js_default() );
+	return apply_filters( 'page_optimize_should_concat_js', $should_concat );
 }
 
 // TODO: Support JS load mode regardless of whether concat is enabled
@@ -121,7 +124,8 @@ function page_optimize_should_concat_css() {
 		return $_GET['concat-css'] !== '0';
 	}
 
-	return !! get_option( 'page_optimize-css', page_optimize_css_default() );
+	$should_concat = !! get_option( 'page_optimize-css', page_optimize_css_default() );
+	return apply_filters( 'page_optimize_should_concat_css', $should_concat );
 }
 
 function page_optimize_js_default() {
@@ -265,38 +269,65 @@ function page_optimize_schedule_cache_cleanup() {
 }
 
 // Cases when we don't want to concat
-function page_optimize_bail() {
+function page_optimize_should_optimize() {
 	// Bail if we're in customizer
 	global $wp_customize;
 	if ( isset( $wp_customize ) ) {
-		return true;
+		return false;
+	}
+
+	// Avoid interfering with AMP mode
+	if ( function_exists( 'amp_is_request' ) && amp_is_request() ) {
+		return false;
 	}
 
 	// Bail if Divi theme is active, and we're in the Divi Front End Builder
 	if ( ! empty( $_GET['et_fb'] ) && 'Divi' === wp_get_theme()->get_template() ) {
-		return true;
+		return false;
 	}
 
 	// Bail if we're editing pages in Brizy Editor
 	if ( class_exists( 'Brizy_Editor' ) && method_exists( 'Brizy_Editor', 'prefix' ) && ( isset( $_GET[ Brizy_Editor::prefix( '-edit-iframe' ) ] ) || isset( $_GET[ Brizy_Editor::prefix( '-edit' ) ] ) ) ) {
-		return true;
+		return false;
 	}
 
-	return false;
+	return true;
 }
 
 function page_optimize_init() {
-	if ( page_optimize_bail() ) {
+	if ( ! apply_filters( 'page_optimize_should_optimize' , page_optimize_should_optimize() ) ) {
 		return;
 	}
 
 	page_optimize_schedule_cache_cleanup();
 
-	require_once __DIR__ . '/settings.php';
-	require_once __DIR__ . '/concat-css.php';
-	require_once __DIR__ . '/concat-js.php';
+	if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
+		define( 'ALLOW_GZIP_COMPRESSION', true );
+	}
 
-	// Disable Jetpack photon-cdn for static JS/CSS
-	add_filter( 'jetpack_force_disable_site_accelerator', '__return_true' );
+	$concat_js = ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() );
+	if ( $concat_js ) {
+		require_once __DIR__ . '/concat-js.php';
+		global $wp_scripts;
+		$wp_scripts = new Page_Optimize_JS_Concat( $wp_scripts );
+		$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
+	}
+
+	$concat_css = page_optimize_should_concat_css();
+	if ( $concat_css ) {
+		require_once __DIR__ . '/concat-css.php';
+		global $wp_styles;
+		$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
+		$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
+	}
+
+	if ( $concat_js || $concat_css ) {
+		// Disable Jetpack photon-cdn for static JS/CSS if we're doing any concat
+		add_filter( 'jetpack_force_disable_site_accelerator', '__return_true' );
+	}
 }
-add_action( 'plugins_loaded', 'page_optimize_init' );
+// Use a late action prior to `wp_enqueue_scripts` to give plugins a chance
+// to set up and determine things that may affect optimization.
+// Example: We cannot ask the AMP plugin whether we are in AMP mode
+// until the `parse_query` action has fired.
+add_action( 'wp', 'page_optimize_init' );

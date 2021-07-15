@@ -3,10 +3,6 @@
 require_once __DIR__ . '/dependency-path-mapping.php';
 require_once __DIR__ . '/utils.php';
 
-if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
-	define( 'ALLOW_GZIP_COMPRESSION', true );
-}
-
 class Page_Optimize_JS_Concat extends WP_Scripts {
 	private $dependency_path_mapping;
 	private $old_scripts;
@@ -300,15 +296,4 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 		$this->old_scripts->$key = $value;
 	}
 }
-
-function page_optimize_js_concat_init() {
-	global $wp_scripts;
-
-	if ( ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) ) {
-		$wp_scripts = new Page_Optimize_JS_Concat( $wp_scripts );
-		$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
-	}
-}
-
-add_action( 'init', 'page_optimize_js_concat_init' );
 

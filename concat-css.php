@@ -3,10 +3,6 @@
 require_once __DIR__ . '/dependency-path-mapping.php';
 require_once __DIR__ . '/utils.php';
 
-if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
-	define( 'ALLOW_GZIP_COMPRESSION', true );
-}
-
 class Page_Optimize_CSS_Concat extends WP_Styles {
 	private $dependency_path_mapping;
 	private $old_styles;
@@ -220,15 +216,4 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$this->old_styles->$key = $value;
 	}
 }
-
-function page_optimize_css_concat_init() {
-	global $wp_styles;
-
-	if ( page_optimize_should_concat_css() ) {
-		$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
-		$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
-	}
-}
-
-add_action( 'init', 'page_optimize_css_concat_init' );
 
