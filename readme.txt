@@ -2,7 +2,7 @@
 Contributors: aidvu, bpayton
 Tags: performance
 Requires at least: 5.3
-Tested up to: 5.7
+Tested up to: 5.8
 Requires PHP: 7.0
 Stable tag: 0.6.0
 License: GPLv2 or later
@@ -51,6 +51,8 @@ Supported query params:
 
 = 0.6.0
 * Delay decision to concat so other plugins can have a say.
+* Fix CSS concat to move @charset and @import statements to the beginning of the concat output
+* Stop CSS concat from reordering styles when styles are excluded from concatenation
 
 = 0.5.1 =
 * Bail when editing pages in Brizy Editor (it errors when JavaScript load mode is `async`).
