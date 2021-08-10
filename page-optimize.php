@@ -282,6 +282,12 @@ function page_optimize_bail() {
 		return true;
 	}
 
+	// Bail if we're in the site editor
+	global $_SERVER;
+	if ( str_contains( $_SERVER['QUERY_STRING'], 'page=gutenberg-edit-site' ) ) {
+		return true;
+	}
+
 	return false;
 }
 
