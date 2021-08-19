@@ -238,10 +238,14 @@ function page_optimize_get_mime_type( $file ) {
 
 function page_optimize_generate_import_from_css_content( $raw_css_content ) {
 	$escaped_css_content = str_replace(
-		array( "\r", "\n", "\\", "'" ),
-		array( "\\D", "\\A", "\\\\", "\\'" ),
+		// TODO: Improve comment
+		// NOTE: It's important to escape existing backslashes first as subsequent replacements insert more of them
+		array( "\\",  "\r",  "\n",  "'",   "#" ),
+		array( "%5C", "%0D", "%0A", "\\'", "%23" ),
 		$raw_css_content
 	);
+	// TODO: Remove this
+	//$escaped_css_content = rawurlencode( $raw_css_content );
 	return "@import url( 'data:text/css,$escaped_css_content' );\n";
 }
 
