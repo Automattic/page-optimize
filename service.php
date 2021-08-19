@@ -1,4 +1,5 @@
 <?php
+// TODO: Do not concat for MSIE because it doesn't support data-URIs which we need to concat CSS containing charsets and imports
 
 $page_optimize_types = array(
 	'css' => 'text/css',
@@ -81,8 +82,6 @@ function page_optimize_service_request() {
 function page_optimize_build_output() {
 	global $page_optimize_types;
 
-	require_once __DIR__ . '/cssmin/cssmin.php';
-
 	/* Config */
 	$concat_max_files = 150;
 	$concat_unique = true;
@@ -141,14 +140,12 @@ function page_optimize_build_output() {
 	}
 	unset( $request_path, $_static_index );
 
-	global $pre_output;
 	$last_modified = 0;
-	$pre_output = '';
 	$output = '';
 
 	$should_minify_css = defined( 'PAGE_OPTIMIZE_CSS_MINIFY' ) && ! empty( PAGE_OPTIMIZE_CSS_MINIFY );
-
 	if ( $should_minify_css ) {
+		require_once __DIR__ . '/cssmin/cssmin.php';
 		$css_minify = new tubalmartin\CssMin\Minifier;
 	}
 
@@ -194,56 +191,12 @@ function page_optimize_build_output() {
 			// url(relative/path/to/file) -> url(/absolute/and/not/relative/path/to/file)
 			$buf = page_optimize_relative_path_replace( $buf, $dirpath );
 
-			// AlphaImageLoader(...src='relative/path/to/file'...) -> AlphaImageLoader(...src='/absolute/path/to/file'...)
-			$buf = preg_replace(
-				'/(Microsoft.AlphaImageLoader\s*\([^\)]*src=(?:\'|")?)([^\/\'"\s\)](?:(?<!http:|https:).)*)\)/isU',
-				'$1' . ( $dirpath == '/' ? '/' : $dirpath . '/' ) . '$2)',
-				$buf
-			);
-
-			// The @charset rules must be on top of the output
-			if ( 0 === strpos( $buf, '@charset' ) ) {
-				$buf = preg_replace_callback(
-					'/(?P<charset_rule>@charset\s+[\'"][^\'"]+[\'"];)/i',
-					function ( $match ) {
-						global $pre_output;
-
-						if ( 0 === strpos( $pre_output, '@charset' ) ) {
-							return '';
-						}
-
-						$pre_output = $match[0] . "\n" . $pre_output;
-
-						return '';
-					},
-					$buf
-				);
-			}
-
-			// Move the @import rules on top of the concatenated output.
-			// Only @charset rule are allowed before them.
-			if ( false !== strpos( $buf, '@import' ) ) {
-				$buf = preg_replace_callback(
-					'/(?P<pre_path>@import\s+(?:url\s*\()?[\'"\s]*)(?P<path>[^\'"\s](?:https?:\/\/.+\/?)?.+?)(?P<post_path>[\'"\s\)]*;)/i',
-					function ( $match ) use ( $dirpath ) {
-						global $pre_output;
-
-						if ( 0 !== strpos( $match['path'], 'http' ) && '/' != $match['path'][0] ) {
-							$pre_output .= $match['pre_path'] . ( $dirpath == '/' ? '/' : $dirpath . '/' ) .
-										   $match['path'] . $match['post_path'] . "\n";
-						} else {
-							$pre_output .= $match[0] . "\n";
-						}
-
-						return '';
-					},
-					$buf
-				);
-			}
-
 			if ( $should_minify_css ) {
 				$buf = $css_minify->run( $buf );
 			}
+
+			// TODO: Add a "why" comment
+			$buf = page_optimize_generate_import_from_css_content( $buf );
 		}
 
 		if ( $page_optimize_types['js'] === $mime_type ) {
@@ -255,13 +208,13 @@ function page_optimize_build_output() {
 
 	$headers = array(
 		'Last-Modified: ' . gmdate( 'D, d M Y H:i:s', $last_modified ) . ' GMT',
-		'Content-Length: ' . ( strlen( $pre_output ) + strlen( $output ) ),
+		'Content-Length: ' . strlen( $output ),
 		"Content-Type: $mime_type",
 	);
 
 	return array(
 		'headers' => $headers,
-		'content' => $pre_output . $output,
+		'content' => $output,
 	);
 }
 
@@ -281,6 +234,15 @@ function page_optimize_get_mime_type( $file ) {
 	$ext = substr( $file, $lastdot_pos + 1 );
 
 	return isset( $page_optimize_types[ $ext ] ) ? $page_optimize_types[ $ext ] : false;
+}
+
+function page_optimize_generate_import_from_css_content( $raw_css_content ) {
+	$escaped_css_content = str_replace(
+		array( "\r", "\n", "\\", "'" ),
+		array( "\\D", "\\A", "\\\\", "\\'" ),
+		$raw_css_content
+	);
+	return "@import url( 'data:text/css,$escaped_css_content' );\n";
 }
 
 function page_optimize_relative_path_replace( $buf, $dirpath ) {
