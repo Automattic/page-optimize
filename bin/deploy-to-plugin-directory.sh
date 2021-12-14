@@ -159,9 +159,8 @@ then
 	echo -e "Enter your .org username for the SVN commit:"
 	read USERNAME
 	MESSAGE="Update Page Optimize to $NEW_VERSION"
-	# Use actual copy of svn instead of the sandbox alias to avoid wpcom checks.
-	/usr/bin/svn ci --username "$USERNAME" -m "$MESSAGE"
-	/usr/bin/svn cp --username "$USERNAME" -m "$MESSAGE" "$DOTORG_PLUGIN_URL/trunk" "$DOTORG_PLUGIN_URL/tags/$NEW_VERSION"
+	svn ci --username "$USERNAME" -m "$MESSAGE"
+	svn cp --username "$USERNAME" -m "$MESSAGE" "$DOTORG_PLUGIN_URL/trunk" "$DOTORG_PLUGIN_URL/tags/$NEW_VERSION"
 	echo -e "Committed and tagged the plugin successfully!\n"
 else
 	echo -e "Did not commit the changes.\n"
