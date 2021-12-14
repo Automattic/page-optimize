@@ -141,7 +141,6 @@ function page_optimize_build_output() {
 	}
 	unset( $request_path, $_static_index );
 
-	global $pre_output;
 	$last_modified = 0;
 	$pre_output = '';
 	$output = '';
@@ -203,7 +202,7 @@ function page_optimize_build_output() {
 
 			// The @charset rules must be on top of the output
 			if ( 0 === strpos( $buf, '@charset' ) ) {
-				$buf = preg_replace_callback(
+				preg_replace_callback(
 					'/(?P<charset_rule>@charset\s+[\'"][^\'"]+[\'"];)/i',
 					function ( $match ) {
 						global $pre_output;

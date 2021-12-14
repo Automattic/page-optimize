@@ -43,12 +43,10 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$this->all_deps( $handles );
 
 		$stylesheet_group_index = 0;
-
-		// Expose items so tests can check concat output against the initial todo items
-		do_action( 'page_optimize_doing_style_items', $this->to_do, $group );
-
-		// Expose filter so page-optimize tests can enable debug output without enabling WP_DEBUG globally
-		$include_debug_info = apply_filters( 'page_optimize_style_debug', defined( 'WP_DEBUG' ) && WP_DEBUG );
+		// Merge CSS into a single file
+		$concat_group = 'concat';
+		// Concat group on top (first array element gets processed earlier)
+		$stylesheets[ $concat_group ] = array();
 
 		foreach ( $this->to_do as $key => $handle ) {
 			$obj = $this->registered[ $handle ];
@@ -72,14 +70,14 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			if ( false !== strpos( $css_url_parsed['path'], '.css' ) ) {
 				$do_concat = true;
 			} else {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => Maybe Not Static File %s -->\n", esc_html( $handle ), esc_html( $obj->src ) );
 				}
 			}
 
 			// Don't try to concat styles which are loaded conditionally (like IE stuff)
 			if ( isset( $extra['conditional'] ) ) {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => Has Conditional -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
@@ -87,7 +85,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 			// Don't concat rtl stuff for now until concat supports it correctly
 			if ( $do_concat && 'rtl' === $this->text_direction && ! empty( $extra['rtl'] ) ) {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => Is RTL -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
@@ -96,7 +94,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			// Don't try to concat externally hosted scripts
 			$is_internal_uri = $this->dependency_path_mapping->is_internal_uri( $css_url );
 			if ( $do_concat && ! $is_internal_uri ) {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => External URL: %s -->\n", esc_html( $handle ), esc_url( $css_url ) );
 				}
 				$do_concat = false;
@@ -106,7 +104,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 				// Resolve paths and concat styles that exist in the filesystem
 				$css_realpath = $this->dependency_path_mapping->dependency_src_to_fs_path( $css_url );
 				if ( false === $css_realpath ) {
-					if ( $include_debug_info ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat CSS %s => Invalid Path %s -->\n", esc_html( $handle ), esc_html( $css_realpath ) );
 					}
 					$do_concat = false;
@@ -118,7 +116,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			foreach ( $exclude_list as $exclude ) {
 				if ( $do_concat && $handle === $exclude ) {
 					$do_concat = false;
-					if ( $include_debug_info ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat CSS %s => Excluded option -->\n", esc_html( $handle ) );
 					}
 				}
@@ -126,7 +124,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 			// Allow plugins to disable concatenation of certain stylesheets.
 			if ( $do_concat && ! apply_filters( 'css_do_concat', $do_concat, $handle ) ) {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => Filtered `false` -->\n", esc_html( $handle ) );
 				}
 			}
@@ -138,14 +136,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					$media = 'all';
 				}
 
-				if (
-					! isset( $stylesheets[ $stylesheet_group_index ][ $media ][ $handle ] ) ||
-					! is_array( $stylesheets[ $stylesheet_group_index ][ $media ][ $handle ] )
-				) {
-					$stylesheets[ $stylesheet_group_index ][ $media ][ $handle ] = array();
-				}
-
-				$stylesheets[ $stylesheet_group_index ][ $media ][ $handle ] = $css_url_parsed['path'];
+				$stylesheets[ $concat_group ][ $media ][ $handle ] = $css_url_parsed['path'];
 				$this->done[] = $handle;
 			} else {
 				$stylesheet_group_index ++;
@@ -192,7 +183,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 				$handles = array_keys( $css );
 				$css_id = "$media-css-" . md5( $href );
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo apply_filters( 'page_optimize_style_loader_tag', "<link data-handles='" . esc_attr( implode( ',', $handles ) ) . "' rel='stylesheet' id='$css_id' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
 				} else {
 					echo apply_filters( 'page_optimize_style_loader_tag', "<link rel='stylesheet' id='$css_id' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
@@ -224,11 +215,10 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 function page_optimize_css_concat_init() {
 	global $wp_styles;
 
-	if ( page_optimize_should_concat_css() ) {
-		$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
-		$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
-	}
+	$wp_styles = new Page_Optimize_CSS_Concat( $wp_styles );
+	$wp_styles->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-add_action( 'init', 'page_optimize_css_concat_init' );
-
+if ( page_optimize_should_concat_css() ) {
+	add_action( 'init', 'page_optimize_css_concat_init' );
+}

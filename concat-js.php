@@ -62,12 +62,6 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 		$this->all_deps( $handles );
 		$level = 0;
 
-		// Expose items so tests can check concat output against the initial todo items
-		do_action( 'page_optimize_doing_script_items', $this->to_do, $group );
-
-		// Expose filter so page-optimize tests can enable debug output without enabling WP_DEBUG globally
-		$include_debug_info = apply_filters( 'page_optimize_script_debug', defined( 'WP_DEBUG' ) && WP_DEBUG );
-
 		$using_strict = false;
 		foreach ( $this->to_do as $key => $handle ) {
 			$script_is_strict = false;
@@ -103,7 +97,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			if ( false !== strpos( $js_url_parsed['path'], '.js' ) ) {
 				$do_concat = page_optimize_should_concat_js();
 			} else {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Maybe Not Static File %s -->\n", esc_html( $handle ), esc_html( $obj->src ) );
 				}
 			}
@@ -111,7 +105,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			// Don't try to concat externally hosted scripts
 			$is_internal_uri = $this->dependency_path_mapping->is_internal_uri( $js_url );
 			if ( $do_concat && ! $is_internal_uri ) {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => External URL: %s -->\n", esc_html( $handle ), esc_url( $js_url ) );
 				}
 				$do_concat = false;
@@ -121,7 +115,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 				// Resolve paths and concat scripts that exist in the filesystem
 				$js_realpath = $this->dependency_path_mapping->dependency_src_to_fs_path( $js_url );
 				if ( false === $js_realpath ) {
-					if ( $include_debug_info ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat JS %s => Invalid Path %s -->\n", esc_html( $handle ), esc_html( $js_realpath ) );
 					}
 					$do_concat = false;
@@ -129,7 +123,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			}
 
 			if ( $do_concat && $this->has_inline_content( $handle ) ) {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Has Inline Content -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
@@ -137,14 +131,14 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 
 			// Skip core scripts that use Strict Mode
 			if ( $do_concat && ( 'react' === $handle || 'react-dom' === $handle ) ) {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Has Strict Mode (Core) -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
 				$script_is_strict = true;
 			} else if ( $do_concat && preg_match_all( '/^[\',"]use strict[\',"];/Uims', file_get_contents( $js_realpath ), $matches ) ) {
 				// Skip third-party scripts that use Strict Mode
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Has Strict Mode (Third-Party) -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
@@ -158,7 +152,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			foreach ( $exclude_list as $exclude ) {
 				if ( $do_concat && $handle === $exclude ) {
 					$do_concat = false;
-					if ( $include_debug_info ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						echo sprintf( "\n<!-- No Concat JS %s => Excluded option -->\n", esc_html( $handle ) );
 					}
 				}
@@ -166,7 +160,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 
 			// Allow plugins to disable concatenation of certain scripts.
 			if ( $do_concat && ! apply_filters( 'js_do_concat', $do_concat, $handle ) ) {
-				if ( $include_debug_info ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Filtered `false` -->\n", esc_html( $handle ) );
 				}
 			}
@@ -254,7 +248,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 
 					$load_mode = page_optimize_load_mode_js();
 
-					if ( $include_debug_info ) {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 						$tag = "<script data-handles='" . esc_attr( $handles ) . "' $load_mode type='text/javascript' src='$href'></script>\n";
 					} else {
 						$tag = "<script type='text/javascript' $load_mode src='$href'></script>\n";
@@ -304,11 +298,10 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 function page_optimize_js_concat_init() {
 	global $wp_scripts;
 
-	if ( ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) ) {
-		$wp_scripts = new Page_Optimize_JS_Concat( $wp_scripts );
-		$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
-	}
+	$wp_scripts = new Page_Optimize_JS_Concat( $wp_scripts );
+	$wp_scripts->allow_gzip_compression = ALLOW_GZIP_COMPRESSION;
 }
 
-add_action( 'init', 'page_optimize_js_concat_init' );
-
+if ( ! is_admin() && ( page_optimize_should_concat_js() || page_optimize_load_mode_js() ) ) {
+	add_action( 'init', 'page_optimize_js_concat_init' );
+}
