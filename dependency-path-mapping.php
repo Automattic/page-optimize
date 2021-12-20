@@ -96,7 +96,9 @@ class Page_Optimize_Dependency_Path_Mapping {
 			$file_path = $this->content_dir . substr( $uri_path, strlen( $this->content_uri_path ) );
         } else if ( static::is_descendant_uri(  '/wp-includes/', $uri_path ) ) {
             $file_path = $this->site_dir . $uri_path;
-		} else if ( static::is_descendant_uri( $this->site_uri_path, $uri_path ) ) {
+        } else if ( static::is_descendant_uri(  '/wp-admin/', $uri_path ) ) {
+            $file_path = $this->site_dir . $uri_path;
+        } else if ( static::is_descendant_uri( $this->site_uri_path, $uri_path ) ) {
 			$file_path = $this->site_dir . substr( $uri_path, strlen( $this->site_uri_path ) );
 		}
 
