@@ -40,7 +40,11 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$stylesheets = array();
 		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
 
-		$this->all_deps( $handles );
+        // get the website base url
+        $url_raw = parse_url($siteurl);
+        $baseurl = $url_raw['scheme']."://".$url_raw['host'];
+
+        $this->all_deps( $handles );
 
 		$stylesheet_group_index = 0;
 		// Merge CSS into a single file
@@ -178,7 +182,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 					$href = $siteurl . "/_static/??" . $path_str;
 				} else {
-					$href = Page_Optimize_Utils::cache_bust_mtime( current( $css ), $siteurl );
+					$href = Page_Optimize_Utils::cache_bust_mtime( current( $css ), $baseurl );
 				}
 
 				$handles = array_keys( $css );
