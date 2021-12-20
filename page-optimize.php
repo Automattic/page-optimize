@@ -26,7 +26,7 @@ define( 'PAGE_OPTIMIZE_CRON_CACHE_CLEANUP_JOB', 'page_optimize_cron_cache_cleanu
 // TODO: Copy tests from nginx-http-concat and/or write them
 
 // TODO: Make concat URL dir configurable
-if ( isset( $_SERVER['REQUEST_URI'] ) && '/_static/' === substr( $_SERVER['REQUEST_URI'], 0, 9 ) ) {
+if ( $_SERVER['REQUEST_URI'] != false && stripos( $_SERVER['REQUEST_URI'], '/_static/' ) !== false ) {
 	require_once __DIR__ . '/service.php';
 	exit;
 }
