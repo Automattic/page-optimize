@@ -40,11 +40,11 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$stylesheets = array();
 		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
 
-        // get the website base url
-        $url_raw = parse_url($siteurl);
-        $baseurl = $url_raw['scheme']."://".$url_raw['host'];
+		// get the website base url
+		$url_raw = parse_url( $siteurl );
+		$baseurl = $url_raw['scheme'] . "://" . $url_raw['host'];
 
-        $this->all_deps( $handles );
+		$this->all_deps( $handles );
 
 		$stylesheet_group_index = 0;
 		// Merge CSS into a single file

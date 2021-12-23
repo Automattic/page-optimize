@@ -62,7 +62,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 
 		// get the website base url
 		$url_raw = parse_url($siteurl);
-        $baseurl = $url_raw['scheme']."://".$url_raw['host'];
+		$baseurl = $url_raw['scheme']."://".$url_raw['host'];
 
 		$this->all_deps( $handles );
 		$level = 0;
