@@ -38,11 +38,9 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 	function do_items( $handles = false, $group = false ) {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$stylesheets = array();
-		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
 
 		// get the website base url
-		$url_raw = parse_url( $siteurl );
-		$baseurl = $url_raw['scheme'] . "://" . $url_raw['host'];
+		$siteurl = apply_filters( 'page_optimize_site_url', $this->dependency_path_mapping->base_url );
 
 		$this->all_deps( $handles );
 
@@ -180,9 +178,9 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 						}
 					}
 
-					$href = $siteurl . "/_static/??" . $path_str;
+					$href = $siteurl . $this->dependency_path_mapping->site_subdir_path . "/_static/??" . $path_str;
 				} else {
-					$href = Page_Optimize_Utils::cache_bust_mtime( current( $css ), $baseurl );
+					$href = Page_Optimize_Utils::cache_bust_mtime( current( $css ), $siteurl );
 				}
 
 				$handles = array_keys( $css );

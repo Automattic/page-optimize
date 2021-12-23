@@ -96,9 +96,9 @@ class Page_Optimize_Dependency_Path_Mapping {
 		}
 
 		// Adds the sub-directory path if not present, like all other resources have if the website is hosted into a sub-folder
-		if (!empty($this->site_subdir_path) && !page_optimize_starts_with($this->site_subdir_path, $uri_path)) {
-            $uri_path = $this->site_subdir_path . $uri_path;
-        }
+		if ( ! empty( $this->site_subdir_path ) && ! page_optimize_starts_with( $this->site_subdir_path, $uri_path ) ) {
+			$uri_path = $this->site_subdir_path . $uri_path;
+		}
 
 		// The plugin URI path may be contained within the content URI path, so we check it before the content URI.
 		// And both the plugin and content URI paths must be contained within the site URI path,
