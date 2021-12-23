@@ -10,8 +10,10 @@ class Page_Optimize_Dependency_Path_Mapping {
 	public $site_url;
 
 	// Save URI path and dir for mapping URIs to filesystem paths
-	public $site_uri_path = null;
-	public $site_dir = null;
+    public $base_url = null;
+    public $site_subdir_path = null;
+    public $site_uri_path = null;
+    public $site_dir = null;
 	public $content_uri_path = null;
 	public $content_dir = null;
 	public $plugin_uri_path = null;
@@ -29,9 +31,15 @@ class Page_Optimize_Dependency_Path_Mapping {
 		if ( null === $site_url ) {
 			$site_url = is_multisite() ? get_site_url( get_current_blog_id() ) : get_site_url();
 		}
+        // parse the site url for further use
+		$url_parsed = parse_url($site_url);
+
+        $this->base_url = $url_parsed['scheme'].'://'.$url_parsed['host'];
+        $this->site_subdir_path = str_replace( $this->base_url, "", $site_url );
+
 		$site_url = trailingslashit( $site_url );
 		$this->site_url = $site_url;
-		$this->site_uri_path = parse_url( $site_url, PHP_URL_PATH );
+        $this->site_uri_path = $url_parsed['path'];
 		$this->site_dir = trailingslashit( $site_dir );
 
 		// Only resolve content URLs if they are under the site URL
@@ -87,6 +95,11 @@ class Page_Optimize_Dependency_Path_Mapping {
 			return false;
 		}
 
+		// Adds the sub-directory path if not present, like all other resources have if the website is hosted into a sub-folder
+		if (!empty($this->site_subdir_path) && !page_optimize_starts_with($this->site_subdir_path, $uri_path)) {
+            $uri_path = $this->site_subdir_path . $uri_path;
+        }
+
 		// The plugin URI path may be contained within the content URI path, so we check it before the content URI.
 		// And both the plugin and content URI paths must be contained within the site URI path,
 		// so we check them before checking the site URI.
@@ -94,12 +107,8 @@ class Page_Optimize_Dependency_Path_Mapping {
 			$file_path = $this->plugin_dir . substr( $uri_path, strlen( $this->plugin_uri_path ) );
 		} else if ( isset( $this->content_uri_path ) && static::is_descendant_uri( $this->content_uri_path, $uri_path ) ) {
 			$file_path = $this->content_dir . substr( $uri_path, strlen( $this->content_uri_path ) );
-        } else if ( static::is_descendant_uri(  '/wp-includes/', $uri_path ) ) {
-            $file_path = $this->site_dir . $uri_path;
-        } else if ( static::is_descendant_uri(  '/wp-admin/', $uri_path ) ) {
-            $file_path = $this->site_dir . $uri_path;
         } else if ( static::is_descendant_uri( $this->site_uri_path, $uri_path ) ) {
-			$file_path = $this->site_dir . substr( $uri_path, strlen( $this->site_uri_path ) );
+            $file_path = $this->site_dir . substr( $uri_path, strlen( $this->site_uri_path ) );
 		}
 
 		if ( isset( $file_path ) && file_exists( $file_path ) ) {
