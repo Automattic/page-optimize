@@ -141,23 +141,16 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 				$stylesheets[ $concat_group ][ $media ][ $handle ] = $css_url_parsed['path'];
 				$this->done[] = $handle;
 			} else {
-				$stylesheet_group_index ++;
-				$stylesheets[ $stylesheet_group_index ]['noconcat'][] = $handle;
-				$stylesheet_group_index ++;
+				if ( $this->do_item( $handle, $group ) ) {
+					$this->done[] = $handle;
+				}
 			}
 			unset( $this->to_do[ $key ] );
 		}
 
 		foreach ( $stylesheets as $idx => $stylesheets_group ) {
 			foreach ( $stylesheets_group as $media => $css ) {
-				if ( 'noconcat' == $media ) {
-					foreach ( $css as $handle ) {
-						if ( $this->do_item( $handle, $group ) ) {
-							$this->done[] = $handle;
-						}
-					}
-					continue;
-				} elseif ( count( $css ) > 1 ) {
+				if ( count( $css ) > 1 ) {
 					$fs_paths = array();
 					foreach ( $css as $css_uri_path ) {
 						$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $css_uri_path );
