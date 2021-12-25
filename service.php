@@ -187,6 +187,11 @@ function page_optimize_build_output() {
 			page_optimize_status_exit( 500 );
 		}
 
+		// Removes source mapping URLs as they are unnecessary after concatenation
+		if ( false !== strpos( $buf, 'sourceMappingURL' ) ) {
+			$buf = preg_replace('/(\/\*# sourceMappingURL=.+\.map \*\/)/', "" , $buf );
+		}
+
 		if ( 'text/css' == $mime_type ) {
 			$dirpath = '/' . ltrim( dirname( $uri ), '/' );
 
@@ -199,11 +204,6 @@ function page_optimize_build_output() {
 				'$1' . ( $dirpath == '/' ? '/' : $dirpath . '/' ) . '$2)',
 				$buf
 			);
-
-			// Removes source mapping URLs as they are unnecessary after concatenation
-			if ( false !== strpos( $buf, 'sourceMappingURL' ) ) {
-				$buf = preg_replace('/(\/\*# sourceMappingURL=.+\.map \*\/)/', "" , $buf );
-			}
 
 			// The @charset rules must be on top of the output
 			if ( 0 === strpos( $buf, '@charset' ) ) {
