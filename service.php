@@ -189,7 +189,7 @@ function page_optimize_build_output() {
 
 		// Removes source mapping URLs as they are unnecessary after concatenation
 		if ( false !== strpos( $buf, 'sourceMappingURL' ) ) {
-			$buf = preg_replace('/(\/\*# sourceMappingURL=.+\.map \*\/)/', "" , $buf );
+			$buf = preg_replace('/\/\*# sourceMappingURL=.+\.map \*\//', "" , $buf );
 		}
 
 		if ( 'text/css' == $mime_type ) {
