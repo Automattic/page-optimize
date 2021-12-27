@@ -64,10 +64,10 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			$css_url_parsed = parse_url( $obj->src );
 			$extra = $obj->extra;
 
-			// Only try to concat static css files
-			if ( false !== strpos( $css_url_parsed['path'], '.css' ) ) {
-				$do_concat = true;
-			} else {
+			// try to concat static css files
+			$do_concat = true;
+
+			if ( 0 == strpos( $css_url_parsed['path'], '.css' ) ) {
 
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => Maybe Not Static File %s -->\n", esc_html( $handle ), esc_html( $obj->src ) );
