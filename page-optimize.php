@@ -168,8 +168,8 @@ function page_optimize_css_exclude_list() {
 }
 
 function page_optimize_css_exclude_list_default() {
-	// WordPress core stuff
-	return [ 'admin-bar', 'dashicons' ];
+	// WordPress Core and known conflicting plugins
+	return [ 'admin-bar', 'dashicons', 'elementor-app' ];
 }
 
 function page_optimize_sanitize_js_load_mode( $value ) {
