@@ -2,7 +2,7 @@
 Contributors: aidvu, bpayton
 Tags: performance
 Requires at least: 5.3
-Tested up to: 5.8.2
+Tested up to: 6.2
 Requires PHP: 7.4
 Stable tag: 0.5.3
 License: GPLv2 or later
