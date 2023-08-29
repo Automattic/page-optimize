@@ -272,9 +272,14 @@ function page_optimize_bail() {
 		return true;
 	}
 
-	// Bail if we're in the editor
+	// Bail if we're in any of the excluded pages.
 	global $pagenow;
-	if ( isset( $pagenow ) && ( $pagenow == 'post.php' || $pagenow == 'post-new.php' ) ) {
+	$excluded_pages = array(
+		'post.php',
+		'post-new.php',
+		'site-editor.php',
+	);
+	if ( isset( $pagenow ) && in_array( $pagenow, $excluded_pages ) ) {
 		return true;
 	}
 
