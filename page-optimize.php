@@ -4,7 +4,7 @@ Plugin Name: Page Optimize
 Plugin URI: https://wordpress.org/plugins/page-optimize/
 Description: Optimizes JS and CSS for faster page load and render in the browser.
 Author: Automattic
-Version: 0.5.3
+Version: 0.5.4
 Author URI: http://automattic.com/
 */
 
@@ -269,6 +269,17 @@ function page_optimize_bail() {
 	// Bail if we're in customizer
 	global $wp_customize;
 	if ( isset( $wp_customize ) ) {
+		return true;
+	}
+
+	// Bail if we're in any of the excluded pages.
+	global $pagenow;
+	$excluded_pages = array(
+		'post.php',
+		'post-new.php',
+		'site-editor.php',
+	);
+	if ( isset( $pagenow ) && in_array( $pagenow, $excluded_pages ) ) {
 		return true;
 	}
 

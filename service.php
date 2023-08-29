@@ -84,7 +84,7 @@ function page_optimize_build_output() {
 	require_once __DIR__ . '/cssmin/cssmin.php';
 
 	/* Config */
-	$concat_max_files = 150;
+	$concat_max_files = 300;
 	$concat_unique = true;
 
 	/* Main() */

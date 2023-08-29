@@ -49,6 +49,9 @@ Supported query params:
 
 == Changelog ==
 
+= 0.5.4 =
+* Bail when editing pages or posts in the Editor. Increased the max concatenated file limit.
+
 = 0.5.1 =
 * Bail when editing pages in Brizy Editor (it errors when JavaScript load mode is `async`).
 
