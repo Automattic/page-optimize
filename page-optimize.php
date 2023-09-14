@@ -297,13 +297,15 @@ function page_optimize_bail() {
 }
 
 function page_optimize_init() {
+	// The settings page should always be available without regard to possible bail states.
+	require_once __DIR__ . '/settings.php';
+
 	if ( page_optimize_bail() ) {
 		return;
 	}
 
 	page_optimize_schedule_cache_cleanup();
 
-	require_once __DIR__ . '/settings.php';
 	require_once __DIR__ . '/concat-css.php';
 	require_once __DIR__ . '/concat-js.php';
 
