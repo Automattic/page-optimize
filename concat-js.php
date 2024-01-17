@@ -76,9 +76,17 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			}
 
 			if ( ! $this->registered[ $handle ]->src ) { // Defines a group.
-				// if there are localized items, echo them
-				$this->print_extra_script( $handle );
-				$this->done[] = $handle;
+				if ( $this->has_inline_content( $handle ) ) {
+					$level ++;
+					$javascripts[ $level ]['type'] = 'do_item';
+					$javascripts[ $level ]['handle'] = $handle;
+					$level ++;
+					unset( $this->to_do[ $key ] );
+				} else {
+					// if there are localized items, echo them
+					$this->print_extra_script( $handle );
+					$this->done[] = $handle;
+				}
 				continue;
 			}
 
