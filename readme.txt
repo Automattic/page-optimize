@@ -1,5 +1,5 @@
 === Page Optimize ===
-Contributors: aidvu, bpayton
+Contributors: aidvu, bjorsch, bpayton, rcrdortiz
 Tags: performance
 Requires at least: 5.3
 Tested up to: 6.4
