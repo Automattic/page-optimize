@@ -2,7 +2,7 @@
 Contributors: aidvu, bjorsch, bpayton, rcrdortiz
 Tags: performance
 Requires at least: 5.3
-Tested up to: 6.4
+Tested up to: 6.7
 Requires PHP: 7.4
 Stable tag: 0.5.5
 License: GPLv2 or later
@@ -48,6 +48,9 @@ Supported query params:
 * `load-mode-js` controls how non-critical JavaScript are loaded. Values: 'defer' for [deferred](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-defer), 'async' for [async loading](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-async), any other value indicates the feature should be disabled.
 
 == Changelog ==
+
+= 0.5.6 =
+* Update Tested Up To version.
 
 = 0.5.5 =
 * Fix: Stop skipping inline scripts when src is empty.
