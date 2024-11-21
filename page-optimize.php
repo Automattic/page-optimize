@@ -136,17 +136,25 @@ function page_optimize_js_load_mode_default() {
 	return '';
 }
 
+function page_optimize_js_known_incompatible() {
+	// Scripts that are known to break when concatenated
+	return [
+		'monsterinsights-vue-frontend', // Requires type="module"
+	];
+}
+
 function page_optimize_js_exclude_list() {
-	$exclude_list = get_option( 'page_optimize-js-exclude' );
+	$incompat_list = page_optimize_js_known_incompatible();
+	$exclude_list  = get_option( 'page_optimize-js-exclude' );
 	if ( false === $exclude_list ) {
 		// Use the default since the option is not set
-		return page_optimize_js_exclude_list_default();
+		return array_merge( page_optimize_js_exclude_list_default(), $incompat_list );
 	}
 	if ( '' === $exclude_list ) {
-		return [];
+		return $incompat_list;
 	}
 
-	return explode( ',', $exclude_list );
+	return array_merge( $incompat_list, explode( ',', $exclude_list ) );
 }
 
 function page_optimize_js_exclude_list_default() {
