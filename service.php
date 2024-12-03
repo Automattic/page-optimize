@@ -67,6 +67,7 @@ function page_optimize_service_request() {
 	header( 'X-Page-Optimize: uncached' );
 	header( 'Cache-Control: max-age=' . 31536000 );
 	header( 'ETag: "' . md5( $content ) . '"' );
+	header( 'A8c-Edge-Cache: cache' );
 
 	echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- We need to trust this unfortunately.
 
