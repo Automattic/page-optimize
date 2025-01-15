@@ -71,6 +71,7 @@ class Page_Optimize_Dependency_Path_Mapping {
 		if ( empty( $src_parts['host'] ) ) {
 			// With no host, this is a path relative to the WordPress root
 			$fs_path = "{$this->site_dir}{$path}";
+
 			return file_exists( $fs_path ) ? $fs_path : false;
 		}
 

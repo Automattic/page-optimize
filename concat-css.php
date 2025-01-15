@@ -159,7 +159,6 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 		foreach ( $stylesheets as $idx => $stylesheets_group ) {
 			foreach ( $stylesheets_group as $media => $css ) {
-
 				if ( 'noconcat' == $media ) {
 					foreach ( $css as $handle ) {
 						if ( $this->do_item( $handle, $group ) ) {
