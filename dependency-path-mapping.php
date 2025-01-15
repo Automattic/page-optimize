@@ -71,7 +71,6 @@ class Page_Optimize_Dependency_Path_Mapping {
 		if ( empty( $src_parts['host'] ) ) {
 			// With no host, this is a path relative to the WordPress root
 			$fs_path = "{$this->site_dir}{$path}";
-
 			return file_exists( $fs_path ) ? $fs_path : false;
 		}
 
@@ -133,5 +132,12 @@ class Page_Optimize_Dependency_Path_Mapping {
 		$dir_path = trailingslashit( $dir_path );
 
 		return page_optimize_starts_with( $dir_path, $candidate );
+	}
+
+	/**
+	 * Remove the site directory from a path.
+	 */
+	function remove_site_dir( $path ) {
+		return str_replace( $this->site_dir, '/', $path );
 	}
 }

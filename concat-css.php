@@ -70,8 +70,17 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			if ( false !== strpos( $css_url_parsed['path'], '.css' ) ) {
 				$do_concat = true;
 			} else {
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					echo sprintf( "\n<!-- No Concat CSS %s => Maybe Not Static File %s -->\n", esc_html( $handle ), esc_html( $obj->src ) );
+				if( array_key_exists( 'path', $extra ) ) {
+					$css_url = $this->dependency_path_mapping->remove_site_dir( $extra['path'] );
+					$css_url_parsed = parse_url( $css_url );
+
+					if ( false !== strpos( $css_url_parsed['path'], '.css' ) ) {
+						$do_concat = true;
+					}
+				} else {
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						echo sprintf( "\n<!-- No Concat CSS %s => Maybe Not Static File %s -->\n", esc_html( $handle ), esc_html( $obj->src ) );
+					}
 				}
 			}
 
@@ -138,6 +147,8 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 				$stylesheets[ $concat_group ][ $media ][ $handle ] = $css_url_parsed['path'];
 				$this->done[] = $handle;
+				// Remove the item from the to_do list.
+				unset( $this->registered[ $handle ] );
 			} else {
 				$stylesheet_group_index ++;
 				$stylesheets[ $stylesheet_group_index ]['noconcat'][] = $handle;
@@ -148,6 +159,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 		foreach ( $stylesheets as $idx => $stylesheets_group ) {
 			foreach ( $stylesheets_group as $media => $css ) {
+
 				if ( 'noconcat' == $media ) {
 					foreach ( $css as $handle ) {
 						if ( $this->do_item( $handle, $group ) ) {
