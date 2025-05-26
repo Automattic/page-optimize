@@ -2,9 +2,9 @@
 Contributors: aidvu, bjorsch, bpayton, rcrdortiz
 Tags: performance
 Requires at least: 5.3
-Tested up to: 6.7
+Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 0.5.6
+Stable tag: 0.5.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -49,8 +49,11 @@ Supported query params:
 
 == Changelog ==
 
+= 0.5.7 =
+* Update Tested Up To Version to 6.8.
+
 = 0.5.6 =
-* Update Tested Up To version.
+* Update Tested Up To version to 6.7.
 
 = 0.5.5 =
 * Fix: Stop skipping inline scripts when src is empty.
