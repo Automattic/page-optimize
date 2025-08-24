@@ -187,8 +187,13 @@ function page_optimize_build_output() {
 			page_optimize_status_exit( 500 );
 		}
 
+		// Removes source mapping URLs as they are unnecessary after concatenation
+		if ( false !== strpos( $buf, 'sourceMappingURL' ) ) {
+			$buf = preg_replace('/\/[\/*].*sourceMapping.+/', "" , $buf );
+		}
+
 		if ( 'text/css' == $mime_type ) {
-			$dirpath = '/' . ltrim( $subdir_path_prefix . dirname( $uri ), '/' );
+			$dirpath = '/' . ltrim( dirname( $uri ), '/' );
 
 			// url(relative/path/to/file) -> url(/absolute/and/not/relative/path/to/file)
 			$buf = page_optimize_relative_path_replace( $buf, $dirpath );

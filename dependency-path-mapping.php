@@ -10,6 +10,8 @@ class Page_Optimize_Dependency_Path_Mapping {
 	public $site_url;
 
 	// Save URI path and dir for mapping URIs to filesystem paths
+	public $base_url = null;
+	public $site_subdir_path = null;
 	public $site_uri_path = null;
 	public $site_dir = null;
 	public $content_uri_path = null;
@@ -29,9 +31,15 @@ class Page_Optimize_Dependency_Path_Mapping {
 		if ( null === $site_url ) {
 			$site_url = is_multisite() ? get_site_url( get_current_blog_id() ) : get_site_url();
 		}
+		// parse the site url for further use
+		$url_parsed = parse_url($site_url);
+
+		$this->base_url = $url_parsed['scheme'].'://'.$url_parsed['host'];
+		$this->site_subdir_path = str_replace( $this->base_url, "", $site_url );
+
 		$site_url = trailingslashit( $site_url );
 		$this->site_url = $site_url;
-		$this->site_uri_path = parse_url( $site_url, PHP_URL_PATH );
+		$this->site_uri_path = $url_parsed['path'];
 		$this->site_dir = trailingslashit( $site_dir );
 
 		// Only resolve content URLs if they are under the site URL
@@ -85,6 +93,11 @@ class Page_Optimize_Dependency_Path_Mapping {
 		if ( 1 === preg_match( '#(?:^|/)\.\.?(?:/|$)#', $uri_path ) ) {
 			// Reject relative paths
 			return false;
+		}
+
+		// Adds the sub-directory path if not present, like all other resources have if the website is hosted into a sub-folder
+		if ( ! empty( $this->site_subdir_path ) && ! page_optimize_starts_with( $this->site_subdir_path, $uri_path ) ) {
+			$uri_path = $this->site_subdir_path . $uri_path;
 		}
 
 		// The plugin URI path may be contained within the content URI path, so we check it before the content URI.
