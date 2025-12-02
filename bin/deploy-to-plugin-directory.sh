@@ -48,16 +48,16 @@ NEW_LOADER_FILE="$PLUGIN_PATH/page-optimize.php"
 NEW_VERSION="$( wp_plugin_version "$NEW_LOADER_FILE" )"
 
 GIT_CURRENT_BRANCH="$( git branch | grep "* " | cut -c 3- )"
-if [[ "master" != $GIT_CURRENT_BRANCH ]] ; then
-	echo -e "${RED}Please switch to the master branch before deploying.$RESET"
+if [[ "main" != $GIT_CURRENT_BRANCH ]] ; then
+	echo -e "${RED}Please switch to the main branch before deploying.$RESET"
 	exit 1
 fi
 
 GIT_MASTER_REMOTE="$( git rev-parse --abbrev-ref --symbolic-full-name @{u} | cut -d/ -f 1 )"
-GIT_MASTER_LOCAL_COMMIT="$( git rev-parse master )"
-GIT_MASTER_REMOTE_COMMIT="$( git ls-remote $GIT_MASTER_REMOTE master | cut -f1 )"
+GIT_MASTER_LOCAL_COMMIT="$( git rev-parse main )"
+GIT_MASTER_REMOTE_COMMIT="$( git ls-remote $GIT_MASTER_REMOTE main | cut -f1 )"
 if [[ $GIT_MASTER_LOCAL_COMMIT != $GIT_MASTER_REMOTE_COMMIT ]] ; then
-	echo -e "${RED}Local master does not match $GIT_MASTER_REMOTE/master.$RESET"
+	echo -e "${RED}Local main does not match $GIT_MASTER_REMOTE/main.$RESET"
 	exit 1
 fi
 
