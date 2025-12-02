@@ -2,9 +2,9 @@
 Contributors: aidvu, bjorsch, bpayton, rcrdortiz
 Tags: performance
 Requires at least: 5.3
-Tested up to: 6.8
+Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.5.7
+Stable tag: 0.5.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -48,6 +48,9 @@ Supported query params:
 * `load-mode-js` controls how non-critical JavaScript are loaded. Values: 'defer' for [deferred](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-defer), 'async' for [async loading](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-async), any other value indicates the feature should be disabled.
 
 == Changelog ==
+
+= 0.5.8 =
+* Update Tested Up To Version to 6.9.
 
 = 0.5.7 =
 * Update Tested Up To Version to 6.8.
