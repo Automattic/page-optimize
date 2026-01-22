@@ -152,7 +152,7 @@ function page_optimize_build_output() {
 	}
 
 	foreach ( $args as $uri ) {
-		$fullpath = page_optimize_get_path( $uri );
+		$fullpath = page_optimize_get_path( $subdir_path_prefix . $uri );
 
 		if ( ! file_exists( $fullpath ) ) {
 			page_optimize_status_exit( 404 );
