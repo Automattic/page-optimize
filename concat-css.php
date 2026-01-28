@@ -155,7 +155,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 				if ( $this->do_item( $css_array['handle'], $group ) ) {
 					$this->done[] = $css_array['handle'];
 				}
-			} elseif ( 'concat' === $css_array['type'] ) {
+			} elseif ( 'concat' === $css_array['type'] && isset( $css_array['paths'] ) ) {
 				// Process each media type within the concat group
 				foreach ( $css_array['paths'] as $media => $css ) {
 					if ( count( $css ) > 1 ) {
