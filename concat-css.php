@@ -42,11 +42,9 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 		$this->all_deps( $handles );
 
-		$stylesheet_group_index = 0;
-		// Merge CSS into a single file
-		$concat_group = 'concat';
-		// Concat group on top (first array element gets processed earlier)
-		$stylesheets[ $concat_group ] = array();
+		// Track position in output order. Non-concat items break concat groups
+		// to preserve the original stylesheet order (matching concat-js.php approach).
+		$level = 0;
 
 		foreach ( $this->to_do as $key => $handle ) {
 			$obj = $this->registered[ $handle ];
@@ -136,59 +134,65 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					$media = 'all';
 				}
 
-				$stylesheets[ $concat_group ][ $media ][ $handle ] = $css_url_parsed['path'];
+				// Add to current concat group (create if needed)
+				if ( ! isset( $stylesheets[ $level ] ) ) {
+					$stylesheets[ $level ]['type'] = 'concat';
+				}
+				$stylesheets[ $level ]['paths'][ $media ][ $handle ] = $css_url_parsed['path'];
 				$this->done[] = $handle;
 			} else {
-				$stylesheet_group_index ++;
-				$stylesheets[ $stylesheet_group_index ]['noconcat'][] = $handle;
-				$stylesheet_group_index ++;
+				// Non-concat items break the group to preserve order (double-increment pattern from concat-js.php)
+				$level++;
+				$stylesheets[ $level ]['type'] = 'do_item';
+				$stylesheets[ $level ]['handle'] = $handle;
+				$level++;
 			}
 			unset( $this->to_do[ $key ] );
 		}
 
-		foreach ( $stylesheets as $idx => $stylesheets_group ) {
-			foreach ( $stylesheets_group as $media => $css ) {
-				if ( 'noconcat' == $media ) {
-					foreach ( $css as $handle ) {
-						if ( $this->do_item( $handle, $group ) ) {
-							$this->done[] = $handle;
+		foreach ( $stylesheets as $css_array ) {
+			if ( 'do_item' === $css_array['type'] ) {
+				if ( $this->do_item( $css_array['handle'], $group ) ) {
+					$this->done[] = $css_array['handle'];
+				}
+			} elseif ( 'concat' === $css_array['type'] ) {
+				// Process each media type within the concat group
+				foreach ( $css_array['paths'] as $media => $css ) {
+					if ( count( $css ) > 1 ) {
+						$fs_paths = array();
+						foreach ( $css as $css_uri_path ) {
+							$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $css_uri_path );
 						}
-					}
-					continue;
-				} elseif ( count( $css ) > 1 ) {
-					$fs_paths = array();
-					foreach ( $css as $css_uri_path ) {
-						$fs_paths[] = $this->dependency_path_mapping->uri_path_to_fs_path( $css_uri_path );
-					}
 
-					$mtime = max( array_map( 'filemtime', $fs_paths ) );
-					if ( page_optimize_use_concat_base_dir() ) {
-						$path_str = implode( ',', array_map( 'page_optimize_remove_concat_base_prefix', $fs_paths ) );
+						$mtime = max( array_map( 'filemtime', $fs_paths ) );
+						if ( page_optimize_use_concat_base_dir() ) {
+							$path_str = implode( ',', array_map( 'page_optimize_remove_concat_base_prefix', $fs_paths ) );
+						} else {
+							$path_str = implode( ',', $css );
+						}
+						$path_str = "$path_str?m=$mtime";
+
+						if ( $this->allow_gzip_compression ) {
+							$path_64 = base64_encode( gzcompress( $path_str ) );
+							if ( strlen( $path_str ) > ( strlen( $path_64 ) + 1 ) ) {
+								$path_str = '-' . $path_64;
+							}
+						}
+
+						$href = $siteurl . "/_static/??" . $path_str;
 					} else {
-						$path_str = implode( ',', $css );
-					}
-					$path_str = "$path_str?m=$mtime";
-
-					if ( $this->allow_gzip_compression ) {
-						$path_64 = base64_encode( gzcompress( $path_str ) );
-						if ( strlen( $path_str ) > ( strlen( $path_64 ) + 1 ) ) {
-							$path_str = '-' . $path_64;
-						}
+						$href = Page_Optimize_Utils::cache_bust_mtime( current( $css ), $siteurl );
 					}
 
-					$href = $siteurl . "/_static/??" . $path_str;
-				} else {
-					$href = Page_Optimize_Utils::cache_bust_mtime( current( $css ), $siteurl );
+					$handles = array_keys( $css );
+					$css_id = "$media-css-" . md5( $href );
+					if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+						echo apply_filters( 'page_optimize_style_loader_tag', "<link data-handles='" . esc_attr( implode( ',', $handles ) ) . "' rel='stylesheet' id='$css_id' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
+					} else {
+						echo apply_filters( 'page_optimize_style_loader_tag', "<link rel='stylesheet' id='$css_id' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
+					}
+					array_map( array( $this, 'print_inline_style' ), array_keys( $css ) );
 				}
-
-				$handles = array_keys( $css );
-				$css_id = "$media-css-" . md5( $href );
-				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-					echo apply_filters( 'page_optimize_style_loader_tag', "<link data-handles='" . esc_attr( implode( ',', $handles ) ) . "' rel='stylesheet' id='$css_id' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
-				} else {
-					echo apply_filters( 'page_optimize_style_loader_tag', "<link rel='stylesheet' id='$css_id' href='$href' type='text/css' media='$media' />\n", $handles, $href, $media );
-				}
-				array_map( array( $this, 'print_inline_style' ), array_keys( $css ) );
 			}
 		}
 
