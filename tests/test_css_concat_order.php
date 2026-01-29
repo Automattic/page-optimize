@@ -11,6 +11,9 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	 *
 	 * Enqueue order: a (local) -> b (external CDN) -> c (local)
 	 * Expected output: [a], [b], [c]  (three separate <link> tags)
+	 *
+     * @group css-order-bug
+	 *
 	 **/
 	public function test_nonconcat_item_breaks_concat_run_and_preserves_order(): void {
 		$styles = $this->new_concat_styles();
@@ -37,6 +40,9 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	 *
 	 * Enqueue order: a (media="all") -> b (media="screen") -> c (media="all")
 	 * Expected output order: a, b, c (not a+c combined, then b)
+	 *
+     * @group css-order-bug
+	 *
 	 **/
 	public function test_media_interleaving_must_not_reorder_handles(): void {
 		$styles = $this->new_concat_styles();
@@ -67,6 +73,9 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	 *
 	 * Enqueue: a (with inline style after it) -> b
 	 * Expected output: [a], [b]  (two separate tags, not combined)
+	 *
+     * @group css-order-bug
+	 *
 	 **/
 	public function test_inline_style_should_break_concat_boundary(): void {
 		$styles = $this->new_concat_styles();
@@ -77,7 +86,7 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 		$styles->add( 'a', $a, [], null, 'all' );
 		$styles->add( 'b', $b, [], null, 'all' );
 
-		// Inline CSS on "a" must not be moved after "b"’s rules due to concatenation.
+		// Inline CSS on "a" must not be moved after "b"'s rules due to concatenation.
 		$styles->add_inline_style( 'a', '.po-inline-a{color:red;}' );
 
 		$styles->enqueue( 'a' );
