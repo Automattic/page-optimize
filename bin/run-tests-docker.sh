@@ -74,4 +74,8 @@ export WP_TESTS_PHPUNIT_POLYFILLS_PATH="${polyfills_path}"
 
 bin/install-wp-tests.sh "$DB_NAME" "$DB_USER" "$DB_PASS" "$DB_HOST" "$WP_VERSION" "$SKIP_DB_CREATE"
 
-phpunit
+if [ "$#" -gt 0 ]; then
+  phpunit "$@"
+else
+  phpunit
+fi

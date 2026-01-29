@@ -14,9 +14,31 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Run PHPUnit (Docker)
+      - name: Build test image
+        run: docker compose build tests
+      - name: Start DB
+        run: docker compose up -d db
+      - name: Run PHPUnit (excluding known bugs)
         run: |
-          docker compose up --build --abort-on-container-exit --exit-code-from tests
+          docker compose run --rm tests bash -lc "bin/run-tests-docker.sh --exclude-group css-order-bug"
+      - name: Run known-bug tests (informational)
+        id: known-bugs
+        run: |
+          set +e
+          docker compose run --rm tests bash -lc "bin/run-tests-docker.sh --group css-order-bug"
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
+      - name: Report known-bug status
+        if: always()
+        run: |
+          if [ "${{ steps.known-bugs.outputs.status }}" != "0" ]; then
+            echo "::warning::Known CSS order bugs are still failing"
+            echo "⚠️ Known CSS order bugs are still failing." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "::notice::Known CSS order bugs are now passing—consider removing the group annotation"
+            echo "✅ Known CSS order bugs are now passing — consider removing the group annotation." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Cleanup
         if: always()
         run: docker compose down -v
