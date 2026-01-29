@@ -19,6 +19,18 @@ if ( ! file_exists( $_tests_dir . '/includes/functions.php' ) ) {
 // Give access to tests_add_filter() function.
 require_once $_tests_dir . '/includes/functions.php';
 
+// Ensure PHPUnit Polyfills are available for WP test bootstrap.
+$polyfills_path = getenv( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' );
+if ( ! $polyfills_path ) {
+	$local_polyfills = dirname( dirname( __FILE__ ) ) . '/vendor/yoast/phpunit-polyfills';
+	if ( file_exists( $local_polyfills . '/phpunitpolyfills-autoload.php' ) ) {
+		$polyfills_path = $local_polyfills;
+	}
+}
+if ( $polyfills_path && ! defined( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH' ) ) {
+	define( 'WP_TESTS_PHPUNIT_POLYFILLS_PATH', $polyfills_path );
+}
+
 /**
  * Manually load the plugin being tested.
  */

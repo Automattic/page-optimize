@@ -47,6 +47,23 @@ Supported query params:
 * `concat-js` controls JavaScript concatenation. Values: `1` for ON and `0` for OFF.
 * `load-mode-js` controls how non-critical JavaScript are loaded. Values: 'defer' for [deferred](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-defer), 'async' for [async loading](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script#attr-async), any other value indicates the feature should be disabled.
 
+= PHPUnit (Docker) =
+
+You can run the PHPUnit tests locally using Docker (no local MySQL required).
+
+First time (or after changing DB credentials):
+
+`docker compose down -v`
+
+Run tests:
+
+`docker compose up --build --abort-on-container-exit --exit-code-from tests`
+
+Optional overrides (examples):
+
+* `WP_VERSION=6.5 docker compose up --build --abort-on-container-exit --exit-code-from tests`
+* `PHPUNIT_VERSION=9.6.20 docker compose up --build --abort-on-container-exit --exit-code-from tests`
+
 == Changelog ==
 
 = 0.5.8 =
