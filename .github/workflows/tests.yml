@@ -1,0 +1,22 @@
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - trunk
+      - master
+
+jobs:
+  phpunit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run PHPUnit (Docker)
+        run: |
+          docker compose up --build --abort-on-container-exit --exit-code-from tests
+      - name: Cleanup
+        if: always()
+        run: docker compose down -v
