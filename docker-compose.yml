@@ -1,0 +1,42 @@
+services:
+  db:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${DB_NAME:-wordpress_test}
+      MYSQL_USER: ${DB_USER:-wordpress}
+      MYSQL_PASSWORD: ${DB_PASS:-wordpress}
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "${DB_USER:-wordpress}", "-p${DB_PASS:-wordpress}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - db-data:/var/lib/mysql
+
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.tests
+      args:
+        PHPUNIT_VERSION: ${PHPUNIT_VERSION:-9.6.20}
+    depends_on:
+      db:
+        condition: service_healthy
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      DB_NAME: ${DB_NAME:-wordpress_test}
+      DB_USER: ${DB_USER:-wordpress}
+      DB_PASS: ${DB_PASS:-wordpress}
+      DB_HOST: ${DB_HOST:-db}
+      WP_VERSION: ${WP_VERSION:-latest}
+      SKIP_DB_CREATE: ${SKIP_DB_CREATE:-true}
+      WP_TESTS_DIR: /tmp/wordpress-tests-lib
+      WP_CORE_DIR: /tmp/wordpress
+    command: bash -lc "bin/run-tests-docker.sh"
+
+volumes:
+  db-data:
