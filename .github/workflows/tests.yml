@@ -23,16 +23,21 @@ jobs:
           docker compose run --rm tests bash -lc "bin/run-tests-docker.sh --exclude-group css-order-bug"
       - name: Run known-bug tests (informational)
         id: known-bugs
-        continue-on-error: true
         run: |
+          set +e
           docker compose run --rm tests bash -lc "bin/run-tests-docker.sh --group css-order-bug"
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          exit 0
       - name: Report known-bug status
         if: always()
         run: |
-          if [ \"${{ steps.known-bugs.outcome }}\" == \"failure\" ]; then
-            echo \"::warning::Known CSS order bugs are still failing\"
+          if [ "${{ steps.known-bugs.outputs.status }}" != "0" ]; then
+            echo "::warning::Known CSS order bugs are still failing"
+            echo "⚠️ Known CSS order bugs are still failing." >> "$GITHUB_STEP_SUMMARY"
           else
-            echo \"::notice::Known CSS order bugs are now passing—consider removing the group annotation\"
+            echo "::notice::Known CSS order bugs are now passing—consider removing the group annotation"
+            echo "✅ Known CSS order bugs are now passing — consider removing the group annotation." >> "$GITHUB_STEP_SUMMARY"
           fi
       - name: Cleanup
         if: always()
