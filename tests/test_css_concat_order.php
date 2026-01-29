@@ -12,7 +12,7 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	 * Enqueue order: a (local) -> b (external CDN) -> c (local)
 	 * Expected output: [a], [b], [c]  (three separate <link> tags)
 	 *
-     * @group css-order-bug
+	 * @group css-order-bug
 	 *
 	 **/
 	public function test_nonconcat_item_breaks_concat_run_and_preserves_order(): void {
@@ -41,7 +41,7 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	 * Enqueue order: a (media="all") -> b (media="screen") -> c (media="all")
 	 * Expected output order: a, b, c (not a+c combined, then b)
 	 *
-     * @group css-order-bug
+	 * @group css-order-bug
 	 *
 	 **/
 	public function test_media_interleaving_must_not_reorder_handles(): void {
@@ -74,7 +74,7 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	 * Enqueue: a (with inline style after it) -> b
 	 * Expected output: [a], [b]  (two separate tags, not combined)
 	 *
-     * @group css-order-bug
+	 * @group css-order-bug
 	 *
 	 **/
 	public function test_inline_style_should_break_concat_boundary(): void {
