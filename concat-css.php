@@ -75,18 +75,24 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 				continue;
 			}
 
-			$obj->src = apply_filters( 'style_loader_src', $obj->src, $obj->handle );
+			$css_url = apply_filters( 'style_loader_src', $obj->src, $obj->handle );
 
 			// Core is kind of broken and returns "true" for src of "colors" handle
 			// http://core.trac.wordpress.org/attachment/ticket/16827/colors-hacked-fixed.diff
 			// http://core.trac.wordpress.org/ticket/20729
-			$css_url = $obj->src;
-			if ( 'colors' == $obj->handle && true === $css_url ) {
+			if ( 'colors' === $obj->handle && true === $css_url ) {
 				$css_url = wp_style_loader_src( $css_url, $obj->handle );
 			}
 
-			$css_url_parsed = parse_url( $css_url );
-			$css_path = ( is_array( $css_url_parsed ) && isset( $css_url_parsed['path'] ) ) ? $css_url_parsed['path'] : '';
+			// If a filter returns something unexpected, let's not concat it.
+			if ( ! is_string( $css_url ) || '' === $css_url ) {
+				$css_url_parsed = false;
+				$css_path       = '';
+			} else {
+				$css_url_parsed = parse_url( $css_url );
+				$css_path       = ( is_array( $css_url_parsed ) && isset( $css_url_parsed['path'] ) ) ? $css_url_parsed['path'] : '';
+			}
+
 			$extra = $obj->extra;
 
 			// Don't concat by default

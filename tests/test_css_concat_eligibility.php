@@ -186,4 +186,84 @@ class Test_CSS_Concat_Eligibility extends CSS_Concat_Test_Case {
 			remove_filter( 'css_do_concat', $filter_callback, 10 );
 		}
 	}
+
+	/**
+	* Verifies that style_loader_src mutations do not accumulate when a handle
+	* falls back to core's do_item().
+	*
+	* We allow style_loader_src to run multiple times, but Page Optimize must NOT
+	* overwrite $registered[handle]->src with the filtered URL. Otherwise, core will
+	* re-filter an already-filtered URL and non-idempotent filters will stack.
+	*/
+	public function test_style_loader_src_does_not_accumulate_for_non_concatenated_handle(): void {
+		$application_count = 0;
+
+		// Deliberately non-idempotent: appends a NEW po_filter param every time it runs.
+		// If the input URL was already mutated (contains po_filter=1), a second run will
+		// produce po_filter=1&po_filter=2, which we can detect.
+		$filter_callback = function( $src, $handle ) use ( &$application_count ) {
+			if ( 'a' !== $handle ) {
+				return $src;
+			}
+
+			$application_count++;
+
+			$sep = ( false === strpos( $src, '?' ) ) ? '?' : '&';
+			return $src . $sep . 'po_filter=' . $application_count;
+		};
+
+		add_filter( 'style_loader_src', $filter_callback, 10, 2 );
+
+		// Force 'a' to fall through to core do_item().
+		$exclude_filter = function( $do_concat, $handle ) {
+			return ( 'a' === $handle ) ? false : $do_concat;
+		};
+		add_filter( 'css_do_concat', $exclude_filter, 10, 2 );
+
+		try {
+			$styles = $this->new_concat_styles();
+
+			$a = $this->make_content_css( 'po-double-filter-a.css' );
+			$styles->add( 'a', $a, [], null, 'all' );
+			$styles->enqueue( 'a' );
+
+			// Capture the original stored src. If Page Optimize mutates $obj->src, this will change.
+			$original_src = $styles->registered['a']->src;
+
+			$html = $this->render( $styles );
+
+			// Precondition: confirm it rendered via core do_item (not a Page Optimize-generated ID).
+			$this->assertMatchesRegularExpression( '/id=[\'"]a-css[\'"]/', $html, 'Expected core do_item output for excluded handle.' );
+
+			// Primary assertion: the registered src must remain unmodified.
+			$this->assertSame(
+				$original_src,
+				$styles->registered['a']->src,
+				'Page Optimize must not overwrite $registered[handle]->src with the filtered URL (causes accumulated mutations).'
+			);
+
+			// Extract href for handle 'a' from the rendered link tag.
+			$this->assertMatchesRegularExpression( '/data-handles=[\'"]a[\'"]/', $html, 'Expected data-handles="a" in output.' );
+
+			preg_match( '/data-handles=[\'"]a[\'"][^>]*href=[\'"]([^\'"]+)[\'"]/', $html, $m );
+			$this->assertNotEmpty( $m[1], 'Could not extract href for handle a.' );
+
+			// Decode &amp; / &#038; etc. for reliable query parsing.
+			$href = html_entity_decode( $m[1], ENT_QUOTES );
+
+			// If mutations accumulated, we'd see po_filter twice (po_filter=1&po_filter=2).
+			preg_match_all( '/(?:\?|&)po_filter=/', $href, $mm );
+			$this->assertSame(
+				1,
+				count( $mm[0] ),
+				'Expected exactly one po_filter param in final href. Multiple occurrences indicate accumulated mutations across filter applications.'
+			);
+
+			// Supplementary: confirm the filter ran; the test is valid even if it ran more than once.
+			$this->assertGreaterThanOrEqual( 1, $application_count, 'Expected style_loader_src filter to run at least once.' );
+		} finally {
+			remove_filter( 'style_loader_src', $filter_callback, 10 );
+			remove_filter( 'css_do_concat', $exclude_filter, 10 );
+		}
+	}
 }
