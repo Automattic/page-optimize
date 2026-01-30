@@ -149,12 +149,13 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			}
 
 			// Allow plugins to disable concatenation of certain stylesheets.
-			if ( $do_concat && ! apply_filters( 'css_do_concat', $do_concat, $handle ) ) {
+			$filtered_concat = apply_filters( 'css_do_concat', $do_concat, $handle );
+			if ( $do_concat && ! $filtered_concat ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat CSS %s => Filtered `false` -->\n", esc_html( $handle ) );
 				}
 			}
-			$do_concat = apply_filters( 'css_do_concat', $do_concat, $handle );
+			$do_concat = $filtered_concat;
 
 			if ( true === $do_concat ) {
 				$media = $obj->args;
