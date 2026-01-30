@@ -139,4 +139,95 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 		$this->assertNotFalse( $pos_b, 'Expected b stylesheet URL in output.' );
 		$this->assertLessThan( $pos_b, $pos_inline, 'Inline CSS for a must appear before b stylesheet.' );
 	}
+
+	/**
+	* After a non-concatenatable item breaks a run, subsequent local stylesheets
+	* should still be concatenated together.
+	*
+	* This catches over-correction where fixing ordering bugs leads to giving up
+	* on concatenation entirely after any boundary.
+	*
+	* Enqueue order: a (local) -> ext (external) -> b (local) -> c (local)
+	* Expected: [a], [ext], [b, c]  (order preserved, b+c still concatenated)
+	*
+	* @group css-order-bug
+	*/
+	public function test_concatenation_resumes_after_nonconcat_boundary(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-resume-a.css' );
+		$b = $this->make_content_css( 'po-resume-b.css' );
+		$c = $this->make_content_css( 'po-resume-c.css' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'ext', 'https://cdn.example.invalid/external.css', [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'ext' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$handles = $this->flatten_groups( $groups );
+		$this->assertSame( [ 'a', 'ext', 'b', 'c' ], $handles, 'Order must be preserved.' );
+
+		// 'a' should be alone (before external boundary).
+		$this->assertSame( [ 'a' ], $groups[0], 'First local stylesheet should be in its own group before external.' );
+
+		// 'ext' should be alone (external, not concatenatable).
+		$this->assertSame( [ 'ext' ], $groups[1], 'External stylesheet should be in its own group.' );
+
+		// 'b' and 'c' should be concatenated together (resume after boundary).
+		$this->assertSame( [ 'b', 'c' ], $groups[2], 'Concatenation should resume after external boundary.' );
+	}
+
+	/**
+	* Stylesheets with the same media attribute should still be concatenated
+	* within their run, even when different media types cause boundaries.
+	*
+	* This ensures the fix for media interleaving doesn't accidentally prevent
+	* concatenation within same-media runs.
+	*
+	* Enqueue order: a (all) -> b (screen) -> c (screen) -> d (all)
+	* Expected: [a], [b, c], [d]  (order preserved, b+c concatenated)
+	*
+	* @group css-order-bug
+	*/
+	public function test_same_media_stylesheets_concatenate_within_run(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-media-run-a.css' );
+		$b = $this->make_content_css( 'po-media-run-b.css' );
+		$c = $this->make_content_css( 'po-media-run-c.css' );
+		$d = $this->make_content_css( 'po-media-run-d.css' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'screen' );
+		$styles->add( 'c', $c, [], null, 'screen' );
+		$styles->add( 'd', $d, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+		$styles->enqueue( 'd' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$handles = $this->flatten_groups( $groups );
+		$this->assertSame( [ 'a', 'b', 'c', 'd' ], $handles, 'Order must be preserved across media boundaries.' );
+
+		// 'a' alone (media=all, before screen run).
+		$this->assertSame( [ 'a' ], $groups[0], 'First all-media stylesheet should be alone before screen run.' );
+
+		// 'b' and 'c' concatenated (both media=screen).
+		$this->assertSame( [ 'b', 'c' ], $groups[1], 'Same-media stylesheets should be concatenated within their run.' );
+
+		// 'd' alone (media=all, after screen run).
+		$this->assertSame( [ 'd' ], $groups[2], 'Final all-media stylesheet should be alone after screen run.' );
+	}
 }
