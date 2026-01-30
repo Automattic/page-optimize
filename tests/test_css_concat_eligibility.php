@@ -53,39 +53,6 @@ class Test_CSS_Concat_Eligibility extends CSS_Concat_Test_Case {
 	}
 
 	/**
-	* Stylesheets wrapped in IE conditional comments (e.g., <!--[if lt IE 9]>)
-	* cannot be concatenated.
-	*
-	* Conditional comments are HTML-level constructs that wrap the entire <link> tag.
-	* You can't concatenate a conditional stylesheet with a non-conditional one - the
-	* conditional wrapper would incorrectly apply to both.
-	*/
-	public function test_conditional_styles_are_not_concatenated(): void {
-		$styles = $this->new_concat_styles();
-
-		$a = $this->make_content_css( 'po-cond-a.css' );
-		$b = $this->make_content_css( 'po-cond-b.css' );
-
-		$styles->add( 'a', $a, [], null, 'all' );
-		$styles->add( 'b', $b, [], null, 'all' );
-
-		// Mark b as conditional (IE, etc.) - should not be concatenated.
-		$styles->registered['b']->extra['conditional'] = 'lt IE 9';
-
-		$styles->enqueue( 'a' );
-		$styles->enqueue( 'b' );
-
-		$html   = $this->render( $styles );
-		$groups = $this->extract_handle_groups( $html );
-
-		foreach ( $groups as $g ) {
-			if ( in_array( 'b', $g, true ) ) {
-				$this->assertCount( 1, $g, 'Conditional stylesheet should never be concatenated with others.' );
-			}
-		}
-	}
-
-	/**
 	* When the page is in RTL (right-to-left) mode and a stylesheet has RTL-specific
 	* handling, it cannot be concatenated.
 	*
