@@ -2,9 +2,6 @@
 
 require_once __DIR__ . '/class-css-concat-test-case.php';
 
-/**
- * @group page-optimize
- */
 class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	/**
 	 * When an external/CDN stylesheet appears between two local stylesheets, the concatenation must be split.
@@ -33,6 +30,40 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 		$groups = $this->extract_handle_groups( $html );
 
 		$this->assertSame( [ [ 'a' ], [ 'b' ], [ 'c' ] ], $groups, 'Expected external stylesheet to break concat and keep order.' );
+	}
+
+	/**
+	* When an external/CDN stylesheet is enqueued first, it must remain first in the output.
+	*
+	* Enqueue order: a (external CDN) -> b (local) -> c (local)
+	* Expected output: [a], [b, c] or [a], [b], [c]  (a must be first)
+	*
+	* @group css-order-bug
+	*/
+	public function test_external_stylesheet_first_preserves_order(): void {
+		$styles = $this->new_concat_styles();
+
+		$b = $this->make_content_css( 'po-b.css' );
+		$c = $this->make_content_css( 'po-c.css' );
+
+		$styles->add( 'a', 'https://cdn.example.invalid/a.css', [], null, 'all' ); // External URL - can't be concatted
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+
+		$html    = $this->render( $styles );
+		$groups  = $this->extract_handle_groups( $html );
+		$handles = $this->flatten_groups( $groups );
+
+		// External 'a' must be first, b and c must follow in order.
+		$this->assertSame( [ 'a', 'b', 'c' ], $handles, 'External stylesheet enqueued first must remain first in output.' );
+
+		// 'a' must be in its own group (not concatenated).
+		$this->assertNotEmpty( $groups );
+		$this->assertSame( [ 'a' ], $groups[0], 'External stylesheet should not be concatenated.' );
 	}
 
 	/**
@@ -73,6 +104,7 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	 *
 	 * Enqueue: a (with inline style after it) -> b
 	 * Expected output: [a], [b]  (two separate tags, not combined)
+	 * Expected output: Inline should appear before b stylesheet.
 	 *
 	 * @group css-order-bug
 	 *
@@ -97,5 +129,196 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 
 		// "a" and "b" must not be in the same concatenated <link>.
 		$this->assertSame( [ [ 'a' ], [ 'b' ] ], $groups, 'Inline CSS should force a boundary (do not concat across inline styles).' );
+
+		// Actually check that the inline style appears before "b" stylesheet.
+		// Otherwise, we could split A and B into groups, but then do A,B,Inline, which is wrong.
+		$this->assertNotFalse( strpos( $html, '.po-inline-a' ), 'Expected inline CSS to be printed.' );
+
+		$pos_inline = strpos( $html, '.po-inline-a' );
+		$pos_b      = strpos( $html, 'po-ib.css' );
+
+		$this->assertNotFalse( $pos_b, 'Expected b stylesheet URL in output.' );
+		$this->assertLessThan( $pos_b, $pos_inline, 'Inline CSS for a must appear before b stylesheet.' );
+	}
+
+	/**
+	* After a non-concatenatable item breaks a run, subsequent local stylesheets
+	* should still be concatenated together.
+	*
+	* This catches over-correction where fixing ordering bugs leads to giving up
+	* on concatenation entirely after any boundary.
+	*
+	* Enqueue order: a (local) -> ext (external) -> b (local) -> c (local)
+	* Expected: [a], [ext], [b, c]  (order preserved, b+c still concatenated)
+	*
+	* @group css-order-bug
+	*/
+	public function test_concatenation_resumes_after_nonconcat_boundary(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-resume-a.css' );
+		$b = $this->make_content_css( 'po-resume-b.css' );
+		$c = $this->make_content_css( 'po-resume-c.css' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'ext', 'https://cdn.example.invalid/external.css', [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'ext' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$handles = $this->flatten_groups( $groups );
+		$this->assertSame( [ 'a', 'ext', 'b', 'c' ], $handles, 'Order must be preserved.' );
+
+		// 'a' should be alone (before external boundary).
+		$this->assertSame( [ 'a' ], $groups[0], 'First local stylesheet should be in its own group before external.' );
+
+		// 'ext' should be alone (external, not concatenatable).
+		$this->assertSame( [ 'ext' ], $groups[1], 'External stylesheet should be in its own group.' );
+
+		// 'b' and 'c' should be concatenated together (resume after boundary).
+		$this->assertSame( [ 'b', 'c' ], $groups[2], 'Concatenation should resume after external boundary.' );
+	}
+
+	/**
+	* Stylesheets with the same media attribute should still be concatenated
+	* within their run, even when different media types cause boundaries.
+	*
+	* This ensures the fix for media interleaving doesn't accidentally prevent
+	* concatenation within same-media runs.
+	*
+	* Enqueue order: a (all) -> b (screen) -> c (screen) -> d (all)
+	* Expected: [a], [b, c], [d]  (order preserved, b+c concatenated)
+	*
+	* @group css-order-bug
+	*/
+	public function test_same_media_stylesheets_concatenate_within_run(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-media-run-a.css' );
+		$b = $this->make_content_css( 'po-media-run-b.css' );
+		$c = $this->make_content_css( 'po-media-run-c.css' );
+		$d = $this->make_content_css( 'po-media-run-d.css' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'screen' );
+		$styles->add( 'c', $c, [], null, 'screen' );
+		$styles->add( 'd', $d, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+		$styles->enqueue( 'd' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$handles = $this->flatten_groups( $groups );
+		$this->assertSame( [ 'a', 'b', 'c', 'd' ], $handles, 'Order must be preserved across media boundaries.' );
+
+		// 'a' alone (media=all, before screen run).
+		$this->assertSame( [ 'a' ], $groups[0], 'First all-media stylesheet should be alone before screen run.' );
+
+		// 'b' and 'c' concatenated (both media=screen).
+		$this->assertSame( [ 'b', 'c' ], $groups[1], 'Same-media stylesheets should be concatenated within their run.' );
+
+		// 'd' alone (media=all, after screen run).
+		$this->assertSame( [ 'd' ], $groups[2], 'Final all-media stylesheet should be alone after screen run.' );
+	}
+
+	/**
+	* When an RTL-marked stylesheet appears between two local stylesheets (in RTL mode),
+	* concatenation must be split while preserving order.
+	*
+	* WordPress can swap in RTL versions of stylesheets at render time, so these
+	* need special handling and cannot be concatenated.
+	*
+	* Enqueue order: a (local) -> b (rtl-marked) -> c (local)
+	* Expected output: [a], [b], [c]  (three separate <link> tags, in order)
+	* Bug: [a], [c], [b], [b] ( RTL stylesheet pushed to end, also not sure why there are 2 - test harness issue? )
+	*
+	* @group css-order-bug
+	*/
+	public function test_rtl_stylesheet_breaks_concat_run_and_preserves_order(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-rtl-order-a.css' );
+		$b = $this->make_content_css( 'po-rtl-order-b.css' );
+		$c = $this->make_content_css( 'po-rtl-order-c.css' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+
+		// Enable RTL mode and mark b as having RTL handling.
+		$styles->text_direction = 'rtl';
+		$styles->registered['b']->extra['rtl'] = true;
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$handles = $this->flatten_groups( $groups );
+		$this->assertSame( [ 'a', 'b', 'c' ], $handles, 'RTL stylesheet must not cause reordering.' );
+
+		// Each should be in its own group (no concatenation across RTL boundary).
+		$this->assertSame( [ [ 'a' ], [ 'b' ], [ 'c' ] ], $groups, 'RTL stylesheet should break concat run.' );
+	}
+
+	/**
+	* When a non-static CSS URL (e.g., style.php?...) appears between local .css files,
+	* concatenation must be split while preserving order, then resume after.
+	*
+	* The plugin checks for '.css' in the path to determine eligibility. URLs like
+	* style.php?color=blue output CSS but don't match this check, so they can't be
+	* concatenated. This is common with theme customizers and dynamic style generators.
+	*
+	* Enqueue order: a (local .css) -> b (local .php) -> c (local .css) -> d (local .css)
+	* Expected output: [a], [b], [c, d]  (order preserved, concat resumes after b)
+	*
+	* @group css-order-bug
+	*/
+	public function test_non_static_css_url_breaks_concat_run_and_preserves_order(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-nonstatic-a.css' );
+		// b is a PHP endpoint that generates CSS - no .css in URL
+		$b = home_url( '/wp-admin/admin-ajax.php?action=dynamic-css&ver=1.0' );
+		$c = $this->make_content_css( 'po-nonstatic-c.css' );
+		$d = $this->make_content_css( 'po-nonstatic-d.css' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+		$styles->add( 'd', $d, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+		$styles->enqueue( 'd' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$handles = $this->flatten_groups( $groups );
+		$this->assertSame( [ 'a', 'b', 'c', 'd' ], $handles, 'Non-static CSS URL must not cause reordering.' );
+
+		// 'a' alone before the non-static boundary.
+		$this->assertSame( [ 'a' ], $groups[0], 'First .css file should be alone before non-static URL.' );
+
+		// 'b' alone (non-static, not concatenatable).
+		$this->assertSame( [ 'b' ], $groups[1], 'Non-static CSS URL should be in its own group.' );
+
+		// 'c' and 'd' should be concatenated (resume after boundary).
+		$this->assertSame( [ 'c', 'd' ], $groups[2], 'Concatenation should resume after non-static boundary.' );
 	}
 }
