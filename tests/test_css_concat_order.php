@@ -231,4 +231,94 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 		// 'd' alone (media=all, after screen run).
 		$this->assertSame( [ 'd' ], $groups[2], 'Final all-media stylesheet should be alone after screen run.' );
 	}
+
+	/**
+	* When an RTL-marked stylesheet appears between two local stylesheets (in RTL mode),
+	* concatenation must be split while preserving order.
+	*
+	* WordPress can swap in RTL versions of stylesheets at render time, so these
+	* need special handling and cannot be concatenated.
+	*
+	* Enqueue order: a (local) -> b (rtl-marked) -> c (local)
+	* Expected output: [a], [b], [c]  (three separate <link> tags, in order)
+	* Bug: [a], [c], [b], [b] ( RTL stylesheet pushed to end, also not sure why there are 2 - test harness issue? )
+	*
+	* @group css-order-bug
+	*/
+	public function test_rtl_stylesheet_breaks_concat_run_and_preserves_order(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-rtl-order-a.css' );
+		$b = $this->make_content_css( 'po-rtl-order-b.css' );
+		$c = $this->make_content_css( 'po-rtl-order-c.css' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+
+		// Enable RTL mode and mark b as having RTL handling.
+		$styles->text_direction = 'rtl';
+		$styles->registered['b']->extra['rtl'] = true;
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$handles = $this->flatten_groups( $groups );
+		$this->assertSame( [ 'a', 'b', 'c' ], $handles, 'RTL stylesheet must not cause reordering.' );
+
+		// Each should be in its own group (no concatenation across RTL boundary).
+		$this->assertSame( [ [ 'a' ], [ 'b' ], [ 'c' ] ], $groups, 'RTL stylesheet should break concat run.' );
+	}
+
+	/**
+	* When a non-static CSS URL (e.g., style.php?...) appears between local .css files,
+	* concatenation must be split while preserving order, then resume after.
+	*
+	* The plugin checks for '.css' in the path to determine eligibility. URLs like
+	* style.php?color=blue output CSS but don't match this check, so they can't be
+	* concatenated. This is common with theme customizers and dynamic style generators.
+	*
+	* Enqueue order: a (local .css) -> b (local .php) -> c (local .css) -> d (local .css)
+	* Expected output: [a], [b], [c, d]  (order preserved, concat resumes after b)
+	*
+	* @group css-order-bug
+	*/
+	public function test_non_static_css_url_breaks_concat_run_and_preserves_order(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-nonstatic-a.css' );
+		// b is a PHP endpoint that generates CSS - no .css in URL
+		$b = home_url( '/wp-admin/admin-ajax.php?action=dynamic-css&ver=1.0' );
+		$c = $this->make_content_css( 'po-nonstatic-c.css' );
+		$d = $this->make_content_css( 'po-nonstatic-d.css' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+		$styles->add( 'd', $d, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+		$styles->enqueue( 'd' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$handles = $this->flatten_groups( $groups );
+		$this->assertSame( [ 'a', 'b', 'c', 'd' ], $handles, 'Non-static CSS URL must not cause reordering.' );
+
+		// 'a' alone before the non-static boundary.
+		$this->assertSame( [ 'a' ], $groups[0], 'First .css file should be alone before non-static URL.' );
+
+		// 'b' alone (non-static, not concatenatable).
+		$this->assertSame( [ 'b' ], $groups[1], 'Non-static CSS URL should be in its own group.' );
+
+		// 'c' and 'd' should be concatenated (resume after boundary).
+		$this->assertSame( [ 'c', 'd' ], $groups[2], 'Concatenation should resume after non-static boundary.' );
+	}
 }
