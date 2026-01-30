@@ -104,6 +104,7 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	 *
 	 * Enqueue: a (with inline style after it) -> b
 	 * Expected output: [a], [b]  (two separate tags, not combined)
+	 * Expected output: Inline should appear before b stylesheet.
 	 *
 	 * @group css-order-bug
 	 *
