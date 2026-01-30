@@ -2,9 +2,6 @@
 
 require_once __DIR__ . '/class-css-concat-test-case.php';
 
-/**
- * @group page-optimize
- */
 class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	/**
 	 * When an external/CDN stylesheet appears between two local stylesheets, the concatenation must be split.
@@ -33,6 +30,40 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 		$groups = $this->extract_handle_groups( $html );
 
 		$this->assertSame( [ [ 'a' ], [ 'b' ], [ 'c' ] ], $groups, 'Expected external stylesheet to break concat and keep order.' );
+	}
+
+	/**
+	* When an external/CDN stylesheet is enqueued first, it must remain first in the output.
+	*
+	* Enqueue order: a (external CDN) -> b (local) -> c (local)
+	* Expected output: [a], [b, c] or [a], [b], [c]  (a must be first)
+	*
+	* @group css-order-bug
+	*/
+	public function test_external_stylesheet_first_preserves_order(): void {
+		$styles = $this->new_concat_styles();
+
+		$b = $this->make_content_css( 'po-b.css' );
+		$c = $this->make_content_css( 'po-c.css' );
+
+		$styles->add( 'a', 'https://cdn.example.invalid/a.css', [], null, 'all' ); // External URL - can't be concatted
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+
+		$html    = $this->render( $styles );
+		$groups  = $this->extract_handle_groups( $html );
+		$handles = $this->flatten_groups( $groups );
+
+		// External 'a' must be first, b and c must follow in order.
+		$this->assertSame( [ 'a', 'b', 'c' ], $handles, 'External stylesheet enqueued first must remain first in output.' );
+
+		// 'a' must be in its own group (not concatenated).
+		$this->assertNotEmpty( $groups );
+		$this->assertSame( [ 'a' ], $groups[0], 'External stylesheet should not be concatenated.' );
 	}
 
 	/**
@@ -97,5 +128,15 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 
 		// "a" and "b" must not be in the same concatenated <link>.
 		$this->assertSame( [ [ 'a' ], [ 'b' ] ], $groups, 'Inline CSS should force a boundary (do not concat across inline styles).' );
+
+		// Actually check that the inline style appears before "b" stylesheet.
+		// Otherwise, we could split A and B into groups, but then do A,B,Inline, which is wrong.
+		$this->assertNotFalse( strpos( $html, '.po-inline-a' ), 'Expected inline CSS to be printed.' );
+
+		$pos_inline = strpos( $html, '.po-inline-a' );
+		$pos_b      = strpos( $html, 'po-ib.css' );
+
+		$this->assertNotFalse( $pos_b, 'Expected b stylesheet URL in output.' );
+		$this->assertLessThan( $pos_b, $pos_inline, 'Inline CSS for a must appear before b stylesheet.' );
 	}
 }

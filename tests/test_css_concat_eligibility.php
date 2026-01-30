@@ -119,12 +119,22 @@ class Test_CSS_Concat_Eligibility extends CSS_Concat_Test_Case {
 	}
 
 	/**
-	* Admins can configure specific handles to be excluded from concatenation via the
-	* page_optimize-css-exclude option.
-	*
-	* Some stylesheets break when concatenated (e.g., they use @import or have
-	* relative URLs that break). This gives admins an escape hatch.
-	*/
+	 * Admins can configure specific handles to be excluded from concatenation via the
+	 * page_optimize-css-exclude option.
+	 *
+	 * Some stylesheets break when concatenated (e.g., they use @import or have
+	 * relative URLs that break). This gives admins an escape hatch.
+	 *
+	 * Excluded handles must:
+	 * 1. Not be concatenated with other handles (rendered in their own <link> tag)
+	 * 2. Maintain their original enqueue order (not be pushed to the end)
+	 *
+	 * Enqueue order: a (excluded) -> b
+	 * Expected output order: [a], [b] (a first, in its own tag)
+	 * Bug: [b], [a] (excluded handle pushed to end)
+	 *
+	 * @group css-order-bug
+	 */
 	public function test_exclusion_list_prevents_concatenation_of_handle(): void {
 		$old = get_option( 'page_optimize-css-exclude', null );
 		update_option( 'page_optimize-css-exclude', 'a' );
@@ -149,6 +159,8 @@ class Test_CSS_Concat_Eligibility extends CSS_Concat_Test_Case {
 					$this->assertCount( 1, $g, 'Excluded handle should not be concatenated with others.' );
 				}
 			}
+			$handles = $this->flatten_groups( $groups );
+			$this->assertSame( [ 'a', 'b' ], $handles );
 		} finally {
 			// Restore option so this test doesn't affect other tests.
 			if ( null === $old ) {
@@ -164,14 +176,22 @@ class Test_CSS_Concat_Eligibility extends CSS_Concat_Test_Case {
 	*
 	* This is the code-based equivalent of the exclusion list-plugins or themes can
 	* hook in and prevent concatenation of specific stylesheets based on custom logic.
+	*
+	* Enqueue order: a (filtered to be excluded) -> b
+	* Expected output order: [a], [b] (a first, in its own tag)
+	* Bug: [b], [a] (excluded handle pushed to end)
+	*
+	* @group css-order-bug
 	*/
 	public function test_css_do_concat_filter_can_disable_concatenation(): void {
-		add_filter( 'css_do_concat', function( $do_concat, $handle ) {
+		$filter_callback = function( $do_concat, $handle ) {
 			if ( 'a' === $handle ) {
 				return false;
 			}
 			return $do_concat;
-		}, 10, 2 );
+		};
+
+		add_filter( 'css_do_concat', $filter_callback, 10, 2 );
 
 		try {
 			$styles = $this->new_concat_styles();
@@ -193,8 +213,10 @@ class Test_CSS_Concat_Eligibility extends CSS_Concat_Test_Case {
 					$this->assertCount( 1, $g, 'css_do_concat filter should be able to prevent concatenation of a handle.' );
 				}
 			}
+			$handles = $this->flatten_groups( $groups );
+			$this->assertSame( [ 'a', 'b' ], $handles, 'Filtered handle must not be reordered behind concatenated output.' );
 		} finally {
-			remove_all_filters( 'css_do_concat' );
+			remove_filter( 'css_do_concat', $filter_callback, 10 );
 		}
 	}
 }
