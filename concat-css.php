@@ -54,6 +54,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$concat_group = null;
 
 		foreach ( $this->to_do as $key => $handle ) {
+			// 1a. Skip invalid dependencies.
 			if ( ! isset( $this->registered[ $handle ] ) ) {
 				unset( $this->to_do[ $key ] );
 				continue;
@@ -61,6 +62,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 			$obj = $this->registered[ $handle ];
 
+			// 1b. Skip virtual (src-less) dependencies.
 			if ( empty( $obj->src ) ) {
 				if ( null !== $concat_group ) {
 					$stylesheets[] = $concat_group;
@@ -88,6 +90,8 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			$css_url_parsed = parse_url( $css_url );
 			$css_path = ( is_array( $css_url_parsed ) && isset( $css_url_parsed['path'] ) ) ? $css_url_parsed['path'] : '';
 			$extra = $obj->extra;
+
+			// 2. Determine if this stylesheet can be concatenated.
 
 			// Don't concat by default
 			$do_concat = false;
@@ -157,17 +161,29 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			}
 			$do_concat = $filtered_concat;
 
+			/**
+			 * 3. Add to the stylesheets output list.
+			 *
+			 * We keep a running $concat_group that accumulates consecutive concat-eligible styles
+			 * sharing the same media type. The group is finalized and appended to $stylesheets when:
+			 *   - A non-concat style appears
+			 *   - The media type changes
+			 *   - An inline style is attached to the current style
+			 * This makes sure output order matches registration order.
+			 **/
 			if ( true === $do_concat ) {
 				$media = $obj->args;
 				if ( empty( $media ) ) {
 					$media = 'all';
 				}
 
+				// Media type changed - finish the current group.
 				if ( null !== $concat_group && $concat_group['media'] !== $media ) {
 					$stylesheets[] = $concat_group;
 					$concat_group = null;
 				}
 
+				// Start a new group if needed.
 				if ( null === $concat_group ) {
 					$concat_group = array(
 						'type'    => 'concat',
@@ -177,19 +193,24 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					);
 				}
 
+				// Add this stylesheet to the current group.
 				$concat_group['paths'][] = $css_path;
 				$concat_group['handles'][] = $handle;
 				$this->done[] = $handle;
 
+				// Inline styles must print right after their <link>, so break the group
+				// because we can't concat directly anything after this CSS.
 				if ( $this->has_inline_style( $handle ) ) {
 					$stylesheets[] = $concat_group;
 					$concat_group = null;
 				}
 			} else {
+				// Non-concat item - finish any current open group to preserve order.
 				if ( null !== $concat_group ) {
 					$stylesheets[] = $concat_group;
 					$concat_group = null;
 				}
+				// Add the non-concat item.
 				$stylesheets[] = array(
 					'type'   => 'do_item',
 					'handle' => $handle,
