@@ -240,8 +240,8 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	* need special handling and cannot be concatenated.
 	*
 	* Enqueue order: a (local) -> b (rtl-marked) -> c (local)
-	* Expected output: [a], [b], [c]  (three separate <link> tags, in order)
-	* Bug: [a], [c], [b], [b] ( RTL stylesheet pushed to end, also not sure why there are 2 - test harness issue? )
+	* Expected output: [a], [b], [b], [c]  (two <link> tags for b: base + RTL, in order)
+	* Bug: [a], [c], [b], [b] (RTL stylesheet pushed to end)
 	*
 	* @group css-order-bug
 	*/
@@ -268,10 +268,10 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 		$groups = $this->extract_handle_groups( $html );
 
 		$handles = $this->flatten_groups( $groups );
-		$this->assertSame( [ 'a', 'b', 'c' ], $handles, 'RTL stylesheet must not cause reordering.' );
+		$this->assertSame( [ 'a', 'b', 'b', 'c' ], $handles, 'RTL stylesheet must not cause reordering.' );
 
 		// Each should be in its own group (no concatenation across RTL boundary).
-		$this->assertSame( [ [ 'a' ], [ 'b' ], [ 'c' ] ], $groups, 'RTL stylesheet should break concat run.' );
+		$this->assertSame( [ [ 'a' ], [ 'b' ], [ 'b' ], [ 'c' ] ], $groups, 'RTL stylesheet should break concat run.' );
 	}
 
 	/**
