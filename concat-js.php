@@ -58,7 +58,8 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 	function do_items( $handles = false, $group = false ) {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$javascripts = array();
-		$siteurl = apply_filters( 'page_optimize_site_url', $this->base_url );
+		$siteurl = apply_filters( 'page_optimize_site_url', $this->dependency_path_mapping->base_url );
+
 		$this->all_deps( $handles );
 		$level = 0;
 
@@ -237,7 +238,7 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 						}
 					}
 
-					$href = $siteurl . "/_static/??" . $path_str;
+					$href = $siteurl . $this->dependency_path_mapping->site_subdir_path . "/_static/??" . $path_str;
 				} elseif ( isset( $js_array['paths'] ) && is_array( $js_array['paths'] ) ) {
 					$href = Page_Optimize_Utils::cache_bust_mtime( $js_array['paths'][0], $siteurl );
 				}
