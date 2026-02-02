@@ -1,10 +1,10 @@
 === Page Optimize ===
-Contributors: aidvu, bjorsch, bpayton, rcrdortiz
+Contributors: aidvu, bjorsch, bpayton, mreishus, rcrdortiz
 Tags: performance
 Requires at least: 5.3
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.5.8
+Stable tag: 0.6.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -65,6 +65,19 @@ Optional overrides (examples):
 * `PHPUNIT_VERSION=9.6.20 docker compose up --build --abort-on-container-exit --exit-code-from tests`
 
 == Changelog ==
+
+= 0.6.0 =
+* Fix: CSS concatenation now preserves document order. Previously, all eligible
+  stylesheets were merged into a single group regardless of position, which could
+  reorder them relative to non-concatenated styles (e.g. external or excluded
+	stylesheets). Concatenation now builds sequential runs that break at group
+	boundaries.
+* Fix: Inline styles (`wp_add_inline_style`) now correctly print immediately
+  after their parent stylesheet, even when concatenated.
+* Fix: Apply core's `style_loader_tag` filter for concatenated stylesheets that
+  have no neighbors to concatenate with (matching the JS-side fix from 0.5.0).
+* Fix: The `css_do_concat` filter was being called twice per handle. It is now
+  called once.
 
 = 0.5.8 =
 * Update Tested Up To Version to 6.9.
