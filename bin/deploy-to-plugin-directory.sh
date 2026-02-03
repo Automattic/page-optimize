@@ -102,7 +102,7 @@ fi
 
 # Rsync is faster than cp, and it can handle deleting files in the target
 # directory. We also exclude hidden files so that SVN continues working.
-rsync -a --delete --exclude=".*" --exclude="bin" "$PLUGIN_PATH/" "$TRUNK/"
+rsync -a --delete --exclude=".*" --exclude="bin" --exclude="tests" --exclude="docker-compose.yml" --exclude="Dockerfile.tests" --exclude="phpunit.xml.dist" "$PLUGIN_PATH/" "$TRUNK/"
 
 cd "$TRUNK"
 
