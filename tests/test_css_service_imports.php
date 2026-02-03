@@ -70,4 +70,34 @@ class Test_CSS_Service_Imports extends WP_UnitTestCase {
 		$this->assertStringContainsString( '@import', $content, 'Expected @import to be preserved in concatenated output.' );
 		$this->assertStringContainsString( 'po-service-import-dep.css', $content, 'Expected @import to reference dependency.' );
 	}
+
+	/**
+	 * The concat service should hoist @charset and remove it from the body output.
+	 */
+	public function test_service_hoists_charset_to_top(): void {
+		$this->make_content_css(
+			'po-service-charset-a.css',
+			'@charset "UTF-8";' . "\n" . '.po-charset{color:red;}'
+		);
+		$this->make_content_css( 'po-service-charset-b.css', '.po-charset-b{color:blue;}' );
+
+		$content_path = parse_url( trailingslashit( WP_CONTENT_URL ), PHP_URL_PATH );
+		if ( empty( $content_path ) ) {
+			$content_path = '/wp-content/';
+		}
+		$content_path = trailingslashit( $content_path );
+
+		$uri_a = $content_path . 'po-service-charset-a.css';
+		$uri_b = $content_path . 'po-service-charset-b.css';
+
+		$_SERVER['REQUEST_METHOD'] = 'GET';
+		$_SERVER['REQUEST_URI'] = "/_static/??{$uri_a},{$uri_b}?m=1";
+
+		$output = page_optimize_build_output();
+		$this->assertArrayHasKey( 'content', $output, 'Expected build output to include content.' );
+
+		$content = $output['content'];
+		$this->assertSame( 0, strpos( $content, '@charset' ), 'Expected @charset to be the first rule in output.' );
+		$this->assertSame( 1, substr_count( $content, '@charset' ), 'Expected @charset to appear only once in output.' );
+	}
 }
