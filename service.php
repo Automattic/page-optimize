@@ -325,4 +325,6 @@ function page_optimize_get_path( $uri ) {
 	return $path;
 }
 
-page_optimize_service_request();
+if ( ! defined( 'PAGE_OPTIMIZE_SKIP_SERVICE_REQUEST' ) ) {
+	page_optimize_service_request();
+}
