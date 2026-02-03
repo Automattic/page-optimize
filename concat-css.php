@@ -44,6 +44,51 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		return false;
 	}
 
+	protected function css_has_import( $path ) {
+		static $cache = array();
+
+		if ( empty( $path ) ) {
+			return false;
+		}
+
+		$key = $path;
+
+		if ( array_key_exists( $key, $cache ) ) {
+			return $cache[ $key ];
+		}
+
+		$fh = @fopen( $path, 'rb' );
+		if ( ! $fh ) {
+			$cache[ $key ] = false;
+			return false;
+		}
+
+		$found = false;
+		$tail  = '';
+
+		// Scan in chunks to keep memory bounded for large stylesheets.
+		while ( ! feof( $fh ) ) {
+			$chunk = fread( $fh, 32768 );
+			if ( false === $chunk || '' === $chunk ) {
+				break;
+			}
+
+			$haystack = $tail . $chunk;
+			if ( false !== stripos( $haystack, '@import' ) ) {
+				$found = true;
+				break;
+			}
+
+			// Keep a short overlap so "@import" across chunk boundaries isn't missed.
+			$tail = substr( $haystack, -7 );
+		}
+
+		fclose( $fh );
+
+		$cache[ $key ] = $found;
+		return $found;
+	}
+
 	function do_items( $handles = false, $group = false ) {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$stylesheets = array();
@@ -54,6 +99,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 		$concat_group = null;
 
 		foreach ( $this->to_do as $key => $handle ) {
+			$css_realpath = null;
 			// 1a. Skip invalid dependencies.
 			if ( ! isset( $this->registered[ $handle ] ) ) {
 				unset( $this->to_do[ $key ] );
@@ -179,6 +225,17 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 
 				// Media type changed - finish the current group.
 				if ( null !== $concat_group && $concat_group['media'] !== $media ) {
+					$stylesheets[] = $concat_group;
+					$concat_group = null;
+				}
+
+				// If a non-first stylesheet in a group contains @import, the concat service hoists it,
+				// reordering CSS. Split groups so @import stylesheets are always first in their group.
+				if (
+					null !== $concat_group
+					&& ! empty( $css_realpath )
+					&& $this->css_has_import( $css_realpath )
+				) {
 					$stylesheets[] = $concat_group;
 					$concat_group = null;
 				}
