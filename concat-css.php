@@ -218,7 +218,6 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 			 * This makes sure output order matches registration order.
 			 **/
 			if ( true === $do_concat ) {
-				$has_import = ! empty( $css_realpath ) && $this->css_has_import( $css_realpath );
 				$media = $obj->args;
 				if ( empty( $media ) ) {
 					$media = 'all';
