@@ -142,6 +142,70 @@ class Test_CSS_Concat_Order extends CSS_Concat_Test_Case {
 	}
 
 	/**
+	* Stylesheets containing @import rules must start a new concat group so that
+	* @import statements remain after prior stylesheets.
+	*
+	* Enqueue order: a (local) -> b (has @import) -> c (local)
+	* Expected output: [a], [b, c]  (b starts a new group)
+	*
+	* @group css-order-bug
+	*/
+	public function test_import_stylesheet_breaks_concat_run_before_it(): void {
+		$styles = $this->new_concat_styles();
+
+		$a = $this->make_content_css( 'po-import-a.css', '.po-import-a{color:red;}' );
+		$this->make_content_css( 'po-import-dep.css', '.po-import-dep{color:blue;}' );
+		$b = $this->make_content_css( 'po-import-b.css', '@import "po-import-dep.css"; .po-import-b{color:blue;}' );
+		$c = $this->make_content_css( 'po-import-c.css', '.po-import-c{color:green;}' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$this->assertSame( [ [ 'a' ], [ 'b', 'c' ] ], $groups, 'Stylesheet with @import should start a new concat group.' );
+	}
+
+	/**
+	* Only the first stylesheet in a concat group may contain @import rules.
+	*
+	* Enqueue order: a (@import) -> b (local) -> c (@import) -> d (local)
+	* Expected output: [a, b], [c, d]
+	*
+	* @group css-order-bug
+	*/
+	public function test_import_stylesheet_only_allowed_first_in_group(): void {
+		$styles = $this->new_concat_styles();
+
+		$this->make_content_css( 'po-import-2-dep.css', '.po-import-2-dep{color:blue;}' );
+		$a = $this->make_content_css( 'po-import-2-a.css', '@import "po-import-2-dep.css"; .po-import-2-a{color:red;}' );
+		$b = $this->make_content_css( 'po-import-2-b.css', '.po-import-2-b{color:green;}' );
+		$c = $this->make_content_css( 'po-import-2-c.css', '@import "po-import-2-dep.css"; .po-import-2-c{color:black;}' );
+		$d = $this->make_content_css( 'po-import-2-d.css', '.po-import-2-d{color:orange;}' );
+
+		$styles->add( 'a', $a, [], null, 'all' );
+		$styles->add( 'b', $b, [], null, 'all' );
+		$styles->add( 'c', $c, [], null, 'all' );
+		$styles->add( 'd', $d, [], null, 'all' );
+
+		$styles->enqueue( 'a' );
+		$styles->enqueue( 'b' );
+		$styles->enqueue( 'c' );
+		$styles->enqueue( 'd' );
+
+		$html   = $this->render( $styles );
+		$groups = $this->extract_handle_groups( $html );
+
+		$this->assertSame( [ [ 'a', 'b' ], [ 'c', 'd' ] ], $groups, 'Only the first stylesheet in a concat group may contain @import.' );
+	}
+
+	/**
 	* After a non-concatenatable item breaks a run, subsequent local stylesheets
 	* should still be concatenated together.
 	*
