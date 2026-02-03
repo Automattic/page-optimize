@@ -202,7 +202,7 @@ function page_optimize_build_output() {
 
 			// The @charset rules must be on top of the output
 			if ( 0 === strpos( $buf, '@charset' ) ) {
-				preg_replace_callback(
+				$buf = preg_replace_callback(
 					'/(?P<charset_rule>@charset\s+[\'"][^\'"]+[\'"];)/i',
 					function ( $match ) use ( &$pre_output ) {
 
