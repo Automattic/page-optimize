@@ -78,6 +78,9 @@ Optional overrides (examples):
   have no neighbors to concatenate with (matching the JS-side fix from 0.5.0).
 * Fix: The `css_do_concat` filter was being called twice per handle. It is now
   called once.
+* Fix: CSS concatenation now preserves `@import` and `@charset` rules. A closure
+  scoping bug caused these directives to be stripped from the source but never
+  re-inserted into the output.
 
 = 0.5.8 =
 * Update Tested Up To Version to 6.9.
