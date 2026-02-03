@@ -201,17 +201,16 @@ function page_optimize_build_output() {
 			);
 
 			// The @charset rules must be on top of the output
-			if ( 0 === strpos( $buf, '@charset' ) ) {
+			if ( 0 === stripos( $buf, '@charset' ) ) {
 				$buf = preg_replace_callback(
 					'/(?P<charset_rule>@charset\s+[\'"][^\'"]+[\'"];)/i',
 					function ( $match ) use ( &$pre_output ) {
 
-						if ( 0 === strpos( (string) $pre_output, '@charset' ) ) {
+						if ( 0 === stripos( (string) $pre_output, '@charset' ) ) {
 							return '';
 						}
 
 						$pre_output = $match[0] . "\n" . $pre_output;
-
 						return '';
 					},
 					$buf
@@ -220,12 +219,12 @@ function page_optimize_build_output() {
 
 			// Move the @import rules on top of the concatenated output.
 			// Only @charset rule are allowed before them.
-			if ( false !== strpos( $buf, '@import' ) ) {
+			if ( false !== stripos( $buf, '@import' ) ) {
 				$buf = preg_replace_callback(
 					'/(?P<pre_path>@import\s+(?:url\s*\()?[\'"\s]*)(?P<path>[^\'"\s](?:https?:\/\/.+\/?)?.+?)(?P<post_path>[\'"\s\)]*;)/i',
 					function ( $match ) use ( $dirpath, &$pre_output ) {
 
-						if ( 0 !== strpos( $match['path'], 'http' ) && '/' != $match['path'][0] ) {
+						if ( 0 !== stripos( $match['path'], 'http' ) && '/' != $match['path'][0] ) {
 							$pre_output .= $match['pre_path'] . ( $dirpath == '/' ? '/' : $dirpath . '/' ) .
 										   $match['path'] . $match['post_path'] . "\n";
 						} else {
