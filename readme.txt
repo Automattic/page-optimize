@@ -67,23 +67,12 @@ Optional overrides (examples):
 == Changelog ==
 
 = 0.6.0 =
-* Fix: CSS concatenation now preserves document order. Previously, all eligible
-  stylesheets were merged into a single group regardless of position, which could
-  reorder them relative to non-concatenated styles (e.g. external or excluded
-	stylesheets). Concatenation now builds sequential runs that break at group
-	boundaries.
-* Fix: Inline styles (`wp_add_inline_style`) now correctly print immediately
-  after their parent stylesheet, even when concatenated.
-* Fix: Apply core's `style_loader_tag` filter for concatenated stylesheets that
-  have no neighbors to concatenate with (matching the JS-side fix from 0.5.0).
-* Fix: The `css_do_concat` filter was being called twice per handle. It is now
-  called once.
-* Fix: CSS concatenation now preserves `@import` and `@charset` rules. A closure
-  scoping bug caused these directives to be stripped from the source but never
-  re-inserted into the output.
-* Fix: Stylesheets containing `@import` now start a new concat group. This
-  prevents the service-side `@import` hoist from reordering rules ahead of
-  earlier stylesheets.
+* Fix: Preserve stylesheet enqueue/document order when concatenating CSS. Concat-eligible styles are now emitted as sequential runs and split around non-concatenated items (e.g. external/excluded/dynamic URLs), media changes, RTL handling, and other boundaries.
+* Fix: Inline styles (wp_add_inline_style) now print immediately after their parent stylesheet, including when styles are concatenated.
+* Fix: Apply core's style_loader_tag filter when a concatenation run contains only a single stylesheet (matching core behavior and the JS-side fix from 0.5.0).
+* Fix: The css_do_concat filter is now evaluated once per handle.
+* Fix: The concat service no longer drops @import directives due to a closure scoping bug. (@charset/@import handling now runs against the intended pre-output buffer.)
+* Fix: Stylesheets containing @import now start a new concat run so service-side @import hoisting cannot reorder imports ahead of earlier stylesheets.
 
 = 0.5.8 =
 * Update Tested Up To Version to 6.9.
