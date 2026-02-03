@@ -81,6 +81,9 @@ Optional overrides (examples):
 * Fix: CSS concatenation now preserves `@import` and `@charset` rules. A closure
   scoping bug caused these directives to be stripped from the source but never
   re-inserted into the output.
+* Fix: Stylesheets containing `@import` now start a new concat group. This
+  prevents the service-side `@import` hoist from reordering rules ahead of
+  earlier stylesheets.
 
 = 0.5.8 =
 * Update Tested Up To Version to 6.9.
