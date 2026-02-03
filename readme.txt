@@ -73,6 +73,7 @@ Optional overrides (examples):
 * Fix: The css_do_concat filter is now evaluated once per handle.
 * Fix: The concat service no longer drops @import directives due to a closure scoping bug. (@charset/@import handling now runs against the intended pre-output buffer.)
 * Fix: Stylesheets containing @import now start a new concat run so service-side @import hoisting cannot reorder imports ahead of earlier stylesheets.
+* Fix: Treat @import and @charset as case‑insensitive when building concatenated CSS, preventing missed rules in some stylesheets.
 
 = 0.5.8 =
 * Update Tested Up To Version to 6.9.
