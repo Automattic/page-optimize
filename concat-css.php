@@ -47,7 +47,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 	protected function css_has_import( $path ) {
 		static $cache = array();
 
-		if ( empty( $path ) || ! is_readable( $path ) ) {
+		if ( empty( $path ) ) {
 			return false;
 		}
 
