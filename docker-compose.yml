@@ -20,6 +20,7 @@ services:
       context: .
       dockerfile: Dockerfile.tests
       args:
+        PHP_VERSION: ${PHP_VERSION:-8.2}
         PHPUNIT_VERSION: ${PHPUNIT_VERSION:-9.6.20}
     depends_on:
       db:

@@ -62,6 +62,7 @@ Run tests:
 Optional overrides (examples):
 
 * `WP_VERSION=6.5 docker compose up --build --abort-on-container-exit --exit-code-from tests`
+* `PHP_VERSION=7.4 docker compose up --build --abort-on-container-exit --exit-code-from tests`
 * `PHPUNIT_VERSION=9.6.20 docker compose up --build --abort-on-container-exit --exit-code-from tests`
 
 == Changelog ==
