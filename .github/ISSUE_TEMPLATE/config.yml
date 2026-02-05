@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report an issue or request a feature
+    url: https://linear.app/a8c/team/PERFOPS/new
+    about: Please file all issues in Linear for the Performance Operations team.
