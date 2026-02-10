@@ -127,6 +127,110 @@ class Test_JS_Concat_Eligibility extends JS_Concat_Test_Case {
 	}
 
 	/**
+	 * Requested delayed/module scripts should always stay standalone.
+	 *
+	 * Conservative behavior: avoid concatenating handles that explicitly request
+	 * defer/async or module semantics, so core remains responsible for
+	 * printing their final script attributes.
+	 */
+	public function test_requested_strategy_and_module_scripts_are_not_concatenated(): void {
+		$scripts = $this->new_concat_scripts();
+
+		$a = $this->make_content_js( 'po-rsm-a.js' );
+		$b = $this->make_content_js( 'po-rsm-b.js' );
+		$c = $this->make_content_js( 'po-rsm-c.js' );
+		$d = $this->make_content_js( 'po-rsm-d.js' );
+		$e = $this->make_content_js( 'po-rsm-e.js' );
+		$f = $this->make_content_js( 'po-rsm-f.js' );
+		$g = $this->make_content_js( 'po-rsm-g.js' );
+
+		$scripts->add( 'a', $a, [], null, false );
+		$scripts->add( 'b', $b, [], null, false );
+		$scripts->add( 'c', $c, [], null, false );
+		$scripts->add( 'd', $d, [], null, false );
+		$scripts->add( 'e', $e, [], null, false );
+		$scripts->add( 'f', $f, [], null, false );
+		$scripts->add( 'g', $g, [], null, false );
+
+		$scripts->add_data( 'c', 'type', 'module' );
+		$scripts->add_data( 'd', 'strategy', 'defer' );
+		$scripts->add_data( 'e', 'strategy', 'defer' );
+		$scripts->add_data( 'f', 'strategy', 'async' );
+
+		$scripts->enqueue( 'a' );
+		$scripts->enqueue( 'b' );
+		$scripts->enqueue( 'c' );
+		$scripts->enqueue( 'd' );
+		$scripts->enqueue( 'e' );
+		$scripts->enqueue( 'f' );
+		$scripts->enqueue( 'g' );
+
+		$this->render( $scripts );
+		$groups = $this->extract_handle_groups_from_did_items();
+
+		$this->assertSame(
+			[ [ 'a', 'b' ], [ 'c' ], [ 'd' ], [ 'e' ], [ 'f' ], [ 'g' ] ],
+			$groups
+		);
+
+		// Verify that we actually ran the core do_item for the async/defer/module scripts,
+		// instead of printing our own script tag.
+		$types_by_handle = [];
+		foreach ( $this->did_items as $item ) {
+			if ( ( $item['type'] ?? null ) === 'do_item' ) {
+				$types_by_handle[ $item['handle'] ] = 'do_item';
+			}
+			if ( ( $item['type'] ?? null ) === 'concat' ) {
+				foreach ( $item['handles'] as $h ) {
+					$types_by_handle[ $h ] = 'concat';
+				}
+			}
+		}
+
+		$this->assertSame( 'do_item', $types_by_handle['c'] );
+		$this->assertSame( 'do_item', $types_by_handle['d'] );
+		$this->assertSame( 'do_item', $types_by_handle['e'] );
+		$this->assertSame( 'do_item', $types_by_handle['f'] );
+	}
+
+	/**
+	 * Handles whose tags are changed via script_loader_tag should not be concatenated.
+	 */
+	public function test_script_loader_tag_modified_handle_stays_standalone(): void {
+		$filter_callback = function( $tag, $handle, $src ) {
+			if ( 'b' === $handle ) {
+				return "<script type='module' src='{$src}'></script>";
+			}
+
+			return $tag;
+		};
+		add_filter( 'script_loader_tag', $filter_callback, 10, 3 );
+
+		try {
+			$scripts = $this->new_concat_scripts();
+
+			$a = $this->make_content_js( 'po-sl-a.js' );
+			$b = $this->make_content_js( 'po-sl-b.js' );
+			$c = $this->make_content_js( 'po-sl-c.js' );
+
+			$scripts->add( 'a', $a, [], null, false );
+			$scripts->add( 'b', $b, [], null, false );
+			$scripts->add( 'c', $c, [], null, false );
+
+			$scripts->enqueue( 'a' );
+			$scripts->enqueue( 'b' );
+			$scripts->enqueue( 'c' );
+
+			$this->render( $scripts );
+			$groups = $this->extract_handle_groups_from_did_items();
+
+			$this->assertSame( [ [ 'a' ], [ 'b' ], [ 'c' ] ], $groups );
+		} finally {
+			remove_filter( 'script_loader_tag', $filter_callback, 10 );
+		}
+	}
+
+	/**
 	* Handles in the exclusion list are not concatenated, even if they
 	* point to local files that would otherwise be eligible.
 	*/
