@@ -4,7 +4,7 @@ Tags: performance
 Requires at least: 5.3
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.6.0
+Stable tag: 0.6.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,10 @@ Optional overrides (examples):
 * `PHPUNIT_VERSION=9.6.20 docker compose up --build --abort-on-container-exit --exit-code-from tests`
 
 == Changelog ==
+
+= 0.6.1 =
+* Fix: Skip JavaScript concatenation for scripts that request defer or async loading to preserve core loading behavior.
+* Fix: Skip JavaScript concatenation for module scripts (type="module") and scripts whose <script> tag is modified via the script_loader_tag filter (for example, plugins that add module attributes), improving compatibility.
 
 = 0.6.0 =
 * Fix: Preserve stylesheet enqueue/document order when concatenating CSS. Concat-eligible styles are now emitted as sequential runs and split around non-concatenated items (e.g. external/excluded/dynamic URLs), media changes, RTL handling, and other boundaries.
