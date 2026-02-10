@@ -55,6 +55,32 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 		return false;
 	}
 
+	/**
+	 * Check whether script_loader_tag filters mutate this handle's script tag.
+	 *
+	 * If the tag is mutated, we keep the handle standalone so core can render it.
+	 */
+	protected function script_loader_tag_changes_output( $handle, $js_url ) {
+		if ( ! has_filter( 'script_loader_tag' ) ) {
+			return false;
+		}
+
+		if ( function_exists( 'wp_get_script_tag' ) ) {
+			$probe_tag = wp_get_script_tag(
+				array(
+					'id'  => "{$handle}-js",
+					'src' => $js_url,
+				)
+			);
+		} else {
+			$probe_tag = "<script type='text/javascript' src='" . esc_url( $js_url ) . "'></script>\n";
+		}
+
+		$filtered_tag = apply_filters( 'script_loader_tag', $probe_tag, $handle, $js_url );
+
+		return $filtered_tag !== $probe_tag;
+	}
+
 	function do_items( $handles = false, $group = false ) {
 		$handles = false === $handles ? $this->queue : (array) $handles;
 		$javascripts = array();
@@ -151,6 +177,14 @@ class Page_Optimize_JS_Concat extends WP_Scripts {
 			if ( $do_concat && in_array( $script_strategy, array( 'defer', 'async' ), true ) ) {
 				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
 					echo sprintf( "\n<!-- No Concat JS %s => Requested Strategy %s -->\n", esc_html( $handle ), esc_html( $script_strategy ) );
+				}
+				$do_concat = false;
+			}
+
+			// If a script tag is mutated by script_loader_tag, preserve it via core do_item().
+			if ( $do_concat && $this->script_loader_tag_changes_output( $handle, $js_url ) ) {
+				if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+					echo sprintf( "\n<!-- No Concat JS %s => script_loader_tag modified -->\n", esc_html( $handle ) );
 				}
 				$do_concat = false;
 			}

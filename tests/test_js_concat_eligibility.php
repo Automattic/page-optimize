@@ -194,6 +194,43 @@ class Test_JS_Concat_Eligibility extends JS_Concat_Test_Case {
 	}
 
 	/**
+	 * Handles whose tags are changed via script_loader_tag should not be concatenated.
+	 */
+	public function test_script_loader_tag_modified_handle_stays_standalone(): void {
+		$filter_callback = function( $tag, $handle, $src ) {
+			if ( 'b' === $handle ) {
+				return "<script type='module' src='{$src}'></script>";
+			}
+
+			return $tag;
+		};
+		add_filter( 'script_loader_tag', $filter_callback, 10, 3 );
+
+		try {
+			$scripts = $this->new_concat_scripts();
+
+			$a = $this->make_content_js( 'po-sl-a.js' );
+			$b = $this->make_content_js( 'po-sl-b.js' );
+			$c = $this->make_content_js( 'po-sl-c.js' );
+
+			$scripts->add( 'a', $a, [], null, false );
+			$scripts->add( 'b', $b, [], null, false );
+			$scripts->add( 'c', $c, [], null, false );
+
+			$scripts->enqueue( 'a' );
+			$scripts->enqueue( 'b' );
+			$scripts->enqueue( 'c' );
+
+			$this->render( $scripts );
+			$groups = $this->extract_handle_groups_from_did_items();
+
+			$this->assertSame( [ [ 'a' ], [ 'b' ], [ 'c' ] ], $groups );
+		} finally {
+			remove_filter( 'script_loader_tag', $filter_callback, 10 );
+		}
+	}
+
+	/**
 	* Handles in the exclusion list are not concatenated, even if they
 	* point to local files that would otherwise be eligible.
 	*/
