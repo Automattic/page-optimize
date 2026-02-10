@@ -172,6 +172,25 @@ class Test_JS_Concat_Eligibility extends JS_Concat_Test_Case {
 			[ [ 'a', 'b' ], [ 'c' ], [ 'd' ], [ 'e' ], [ 'f' ], [ 'g' ] ],
 			$groups
 		);
+
+		// Verify that we actually ran the core do_item for the async/defer/module scripts,
+		// instead of printing our own script tag.
+		$types_by_handle = [];
+		foreach ( $this->did_items as $item ) {
+			if ( ( $item['type'] ?? null ) === 'do_item' ) {
+				$types_by_handle[ $item['handle'] ] = 'do_item';
+			}
+			if ( ( $item['type'] ?? null ) === 'concat' ) {
+				foreach ( $item['handles'] as $h ) {
+					$types_by_handle[ $h ] = 'concat';
+				}
+			}
+		}
+
+		$this->assertSame( 'do_item', $types_by_handle['c'] );
+		$this->assertSame( 'do_item', $types_by_handle['d'] );
+		$this->assertSame( 'do_item', $types_by_handle['e'] );
+		$this->assertSame( 'do_item', $types_by_handle['f'] );
 	}
 
 	/**
