@@ -127,6 +127,54 @@ class Test_JS_Concat_Eligibility extends JS_Concat_Test_Case {
 	}
 
 	/**
+	 * Requested delayed/module scripts should always stay standalone.
+	 *
+	 * Conservative behavior: avoid concatenating handles that explicitly request
+	 * defer/async or module semantics, so core remains responsible for
+	 * printing their final script attributes.
+	 */
+	public function test_requested_strategy_and_module_scripts_are_not_concatenated(): void {
+		$scripts = $this->new_concat_scripts();
+
+		$a = $this->make_content_js( 'po-rsm-a.js' );
+		$b = $this->make_content_js( 'po-rsm-b.js' );
+		$c = $this->make_content_js( 'po-rsm-c.js' );
+		$d = $this->make_content_js( 'po-rsm-d.js' );
+		$e = $this->make_content_js( 'po-rsm-e.js' );
+		$f = $this->make_content_js( 'po-rsm-f.js' );
+		$g = $this->make_content_js( 'po-rsm-g.js' );
+
+		$scripts->add( 'a', $a, [], null, false );
+		$scripts->add( 'b', $b, [], null, false );
+		$scripts->add( 'c', $c, [], null, false );
+		$scripts->add( 'd', $d, [], null, false );
+		$scripts->add( 'e', $e, [], null, false );
+		$scripts->add( 'f', $f, [], null, false );
+		$scripts->add( 'g', $g, [], null, false );
+
+		$scripts->add_data( 'c', 'type', 'module' );
+		$scripts->add_data( 'd', 'strategy', 'defer' );
+		$scripts->add_data( 'e', 'strategy', 'defer' );
+		$scripts->add_data( 'f', 'strategy', 'async' );
+
+		$scripts->enqueue( 'a' );
+		$scripts->enqueue( 'b' );
+		$scripts->enqueue( 'c' );
+		$scripts->enqueue( 'd' );
+		$scripts->enqueue( 'e' );
+		$scripts->enqueue( 'f' );
+		$scripts->enqueue( 'g' );
+
+		$this->render( $scripts );
+		$groups = $this->extract_handle_groups_from_did_items();
+
+		$this->assertSame(
+			[ [ 'a', 'b' ], [ 'c' ], [ 'd' ], [ 'e' ], [ 'f' ], [ 'g' ] ],
+			$groups
+		);
+	}
+
+	/**
 	* Handles in the exclusion list are not concatenated, even if they
 	* point to local files that would otherwise be eligible.
 	*/
