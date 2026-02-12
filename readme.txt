@@ -4,7 +4,7 @@ Tags: performance
 Requires at least: 5.3
 Tested up to: 6.9
 Requires PHP: 7.4
-Stable tag: 0.6.1
+Stable tag: 0.6.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -66,6 +66,9 @@ Optional overrides (examples):
 * `PHPUNIT_VERSION=9.6.20 docker compose up --build --abort-on-container-exit --exit-code-from tests`
 
 == Changelog ==
+
+= 0.6.2 =
+* Fix: Harden CSS concat `@import` hoisting to preserve long Google Fonts-style URLs with semicolons and avoid false positives from `@import`-like substrings in rule bodies/URL paths.
 
 = 0.6.1 =
 * Fix: Skip JavaScript concatenation for scripts that request defer or async loading to preserve core loading behavior.
