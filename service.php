@@ -220,21 +220,8 @@ function page_optimize_build_output() {
 			// Move the @import rules on top of the concatenated output.
 			// Only @charset rule are allowed before them.
 			if ( false !== stripos( $buf, '@import' ) ) {
-				$buf = preg_replace_callback(
-					'/(?P<pre_path>@import\s+(?:url\s*\()?[\'"\s]*)(?P<path>[^\'"\s](?:https?:\/\/.+\/?)?.+?)(?P<post_path>[\'"\s\)]*;)/i',
-					function ( $match ) use ( $dirpath, &$pre_output ) {
-
-						if ( 0 !== stripos( $match['path'], 'http' ) && '/' != $match['path'][0] ) {
-							$pre_output .= $match['pre_path'] . ( $dirpath == '/' ? '/' : $dirpath . '/' ) .
-										   $match['path'] . $match['post_path'] . "\n";
-						} else {
-							$pre_output .= $match[0] . "\n";
-						}
-
-						return '';
-					},
-					$buf
-				);
+				// Regex-based hoisting breaks on URLs containing semicolons (like Google Fonts)
+				$buf = page_optimize_hoist_css_import_rules( $buf, $dirpath, $pre_output );
 			}
 
 			if ( $should_minify_css ) {
@@ -288,6 +275,416 @@ function page_optimize_relative_path_replace( $buf, $dirpath ) {
 	);
 
 	return $buf;
+}
+
+/**
+ * Hoist CSS @import rules from a stylesheet body.
+ *
+ * @param string $buf Stylesheet contents.
+ * @param string $dirpath Directory path used for resolving relative imports.
+ * @param string $pre_output Buffer for hoisted rules.
+ *
+ * @return string Stylesheet body without hoisted @import rules.
+ */
+function page_optimize_hoist_css_import_rules( $buf, $dirpath, &$pre_output ) {
+	$offset = 0;
+	$new_buf = '';
+	$new_pre_output = '';
+
+	while ( true ) {
+		$import_pos = page_optimize_css_find_next_import_position( $buf, $offset );
+		if ( false === $import_pos ) {
+			break;
+		}
+
+		$rule_end_pos = page_optimize_css_find_import_rule_end( $buf, $import_pos );
+		if ( false === $rule_end_pos ) {
+			// Parsing failed; keep original buffer unchanged.
+			return $buf;
+		}
+
+		$new_buf .= substr( $buf, $offset, $import_pos - $offset );
+		$rule = substr( $buf, $import_pos, $rule_end_pos - $import_pos + 1 );
+
+		$new_pre_output .= page_optimize_css_rewrite_import_rule_path( $rule, $dirpath ) . "\n";
+		$offset = $rule_end_pos + 1;
+	}
+
+	$new_buf .= substr( $buf, $offset );
+	$pre_output .= $new_pre_output;
+
+	return $new_buf;
+}
+
+/**
+ * Find the next @import position outside quoted strings and block comments.
+ *
+ * @param string $css Source CSS.
+ * @param int    $offset Search offset.
+ *
+ * @return int|false
+ */
+function page_optimize_css_find_next_import_position( $css, $offset = 0 ) {
+	$length = strlen( $css );
+	$quote = '';
+	$brace_depth = 0;
+
+	for ( $i = $offset; $i < $length; $i++ ) {
+		$char = $css[ $i ];
+
+		if ( '' !== $quote ) {
+			if ( '\\' === $char && $i + 1 < $length ) {
+				$i++;
+				continue;
+			}
+
+			if ( $quote === $char ) {
+				$quote = '';
+			}
+
+			continue;
+		}
+
+		if ( '/' === $char && $i + 1 < $length && '*' === $css[ $i + 1 ] ) {
+			$comment_end = strpos( $css, '*/', $i + 2 );
+			if ( false === $comment_end ) {
+				return false;
+			}
+
+			$i = $comment_end + 1;
+			continue;
+		}
+
+		if ( '\'' === $char || '"' === $char ) {
+			$quote = $char;
+			continue;
+		}
+
+		if ( '{' === $char ) {
+			$brace_depth++;
+			continue;
+		}
+
+		if ( '}' === $char ) {
+			if ( $brace_depth > 0 ) {
+				$brace_depth--;
+			}
+			continue;
+		}
+
+		if ( $brace_depth > 0 ) {
+			continue;
+		}
+
+		if ( '@' !== $char ) {
+			continue;
+		}
+
+		if ( 0 !== strncasecmp( substr( $css, $i, 7 ), '@import', 7 ) ) {
+			continue;
+		}
+
+		$next_char_pos = $i + 7;
+		if ( $next_char_pos < $length && page_optimize_css_is_identifier_char( $css[ $next_char_pos ] ) ) {
+			continue;
+		}
+
+		if ( ! page_optimize_css_is_valid_import_next_char( $css, $next_char_pos, $length ) ) {
+			continue;
+		}
+
+		return $i;
+	}
+
+	return false;
+}
+
+/**
+ * Find the semicolon that terminates an @import rule.
+ *
+ * @param string $css CSS source.
+ * @param int    $import_pos Position of the @import token.
+ *
+ * @return int|false
+ */
+function page_optimize_css_find_import_rule_end( $css, $import_pos ) {
+	$length = strlen( $css );
+	$quote = '';
+	$paren_depth = 0;
+
+	for ( $i = $import_pos; $i < $length; $i++ ) {
+		$char = $css[ $i ];
+
+		if ( '' !== $quote ) {
+			if ( '\\' === $char && $i + 1 < $length ) {
+				$i++;
+				continue;
+			}
+
+			if ( $quote === $char ) {
+				$quote = '';
+			}
+
+			continue;
+		}
+
+		if ( '/' === $char && $i + 1 < $length && '*' === $css[ $i + 1 ] ) {
+			$comment_end = strpos( $css, '*/', $i + 2 );
+			if ( false === $comment_end ) {
+				return false;
+			}
+
+			$i = $comment_end + 1;
+			continue;
+		}
+
+		if ( '\'' === $char || '"' === $char ) {
+			$quote = $char;
+			continue;
+		}
+
+		if ( '(' === $char ) {
+			$paren_depth++;
+			continue;
+		}
+
+		if ( ')' === $char ) {
+			if ( $paren_depth > 0 ) {
+				$paren_depth--;
+			}
+			continue;
+		}
+
+		if ( ';' === $char && 0 === $paren_depth ) {
+			return $i;
+		}
+
+		if ( '{' === $char && 0 === $paren_depth ) {
+			return false;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * Rewrite relative @import paths using the current file directory.
+ *
+ * @param string $rule Complete @import rule including terminating semicolon.
+ * @param string $dirpath Directory path used for resolving relative imports.
+ *
+ * @return string
+ */
+function page_optimize_css_rewrite_import_rule_path( $rule, $dirpath ) {
+	$length = strlen( $rule );
+	$import_pos = stripos( $rule, '@import' );
+	if ( false === $import_pos ) {
+		return $rule;
+	}
+
+	$cursor = $import_pos + 7; // strlen('@import').
+	$cursor = page_optimize_css_skip_whitespace_and_comments( $rule, $cursor, $length );
+	if ( false === $cursor ) {
+		return $rule;
+	}
+
+	if ( $cursor >= $length ) {
+		return $rule;
+	}
+
+	$path_pos = null;
+	$path_len = null;
+
+	// Parse either @import "..." or @import url(...)
+	if ( '\'' === $rule[ $cursor ] || '"' === $rule[ $cursor ] ) {
+		$quote = $rule[ $cursor ];
+		$path_pos = $cursor + 1;
+		$cursor++;
+
+		while ( $cursor < $length ) {
+			if ( '\\' === $rule[ $cursor ] && $cursor + 1 < $length ) {
+				$cursor += 2;
+				continue;
+			}
+
+			if ( $quote === $rule[ $cursor ] ) {
+				$path_len = $cursor - $path_pos;
+				break;
+			}
+
+			$cursor++;
+		}
+	} elseif ( 0 === strncasecmp( substr( $rule, $cursor, 3 ), 'url', 3 ) ) {
+		$cursor += 3;
+
+		$cursor = page_optimize_css_skip_whitespace_and_comments( $rule, $cursor, $length );
+		if ( false === $cursor ) {
+			return $rule;
+		}
+
+		if ( $cursor >= $length || '(' !== $rule[ $cursor ] ) {
+			return $rule;
+		}
+
+		$cursor++;
+		$cursor = page_optimize_css_skip_whitespace_and_comments( $rule, $cursor, $length );
+		if ( false === $cursor ) {
+			return $rule;
+		}
+
+		if ( $cursor >= $length ) {
+			return $rule;
+		}
+
+		if ( '\'' === $rule[ $cursor ] || '"' === $rule[ $cursor ] ) {
+			$quote = $rule[ $cursor ];
+			$path_pos = $cursor + 1;
+			$cursor++;
+
+			while ( $cursor < $length ) {
+				if ( '\\' === $rule[ $cursor ] && $cursor + 1 < $length ) {
+					$cursor += 2;
+					continue;
+				}
+
+				if ( $quote === $rule[ $cursor ] ) {
+					$path_len = $cursor - $path_pos;
+					$cursor++;
+					break;
+				}
+
+				$cursor++;
+			}
+
+			if ( null === $path_len ) {
+				return $rule;
+			}
+
+			$cursor = page_optimize_css_skip_whitespace_and_comments( $rule, $cursor, $length );
+			if ( false === $cursor ) {
+				return $rule;
+			}
+
+			if ( $cursor >= $length || ')' !== $rule[ $cursor ] ) {
+				return $rule;
+			}
+		} else {
+			$path_pos = $cursor;
+			while ( $cursor < $length && ')' !== $rule[ $cursor ] ) {
+				$cursor++;
+			}
+
+			if ( $cursor >= $length ) {
+				return $rule;
+			}
+
+			$path_end = $cursor;
+			while ( $path_end > $path_pos && ctype_space( $rule[ $path_end - 1 ] ) ) {
+				$path_end--;
+			}
+
+			$path_len = $path_end - $path_pos;
+		}
+	}
+
+	if ( null === $path_pos || null === $path_len || $path_len <= 0 ) {
+		return $rule;
+	}
+
+	$path = substr( $rule, $path_pos, $path_len );
+	if ( '' === $path || page_optimize_css_import_path_is_absolute( $path ) ) {
+		return $rule;
+	}
+
+	$new_path = ( '/' === $dirpath ? '/' : $dirpath . '/' ) . $path;
+
+	return substr( $rule, 0, $path_pos ) . $new_path . substr( $rule, $path_pos + $path_len );
+}
+
+/**
+ * Determine whether the given @import path is absolute.
+ *
+ * @param string $path Import path.
+ *
+ * @return bool
+ */
+function page_optimize_css_import_path_is_absolute( $path ) {
+	if ( '' === $path ) {
+		return true;
+	}
+
+	if ( '/' === $path[0] ) {
+		return true;
+	}
+
+	return 1 === preg_match( '#^[a-z][a-z0-9+.-]*:#i', $path );
+}
+
+/**
+ * Determine whether a character can appear in a CSS identifier.
+ *
+ * @param string $char Single character.
+ *
+ * @return bool
+ */
+function page_optimize_css_is_identifier_char( $char ) {
+	return ctype_alnum( $char ) || '_' === $char || '-' === $char;
+}
+
+/**
+ * Determine whether the next token after "@import" can start a valid rule.
+ *
+ * @param string $css Source CSS.
+ * @param int    $next_char_pos Position immediately after "@import".
+ * @param int    $length CSS length.
+ *
+ * @return bool
+ */
+function page_optimize_css_is_valid_import_next_char( $css, $next_char_pos, $length ) {
+	if ( $next_char_pos >= $length ) {
+		return false;
+	}
+
+	$next_char = $css[ $next_char_pos ];
+	if ( ctype_space( $next_char ) || '\'' === $next_char || '"' === $next_char ) {
+		return true;
+	}
+
+	return '/' === $next_char && $next_char_pos + 1 < $length && '*' === $css[ $next_char_pos + 1 ];
+}
+
+/**
+ * Skip CSS whitespace and block comments.
+ *
+ * @param string $css CSS source.
+ * @param int    $cursor Start offset.
+ * @param int    $length CSS length.
+ *
+ * @return int|false Next offset or false on malformed comment.
+ */
+function page_optimize_css_skip_whitespace_and_comments( $css, $cursor, $length ) {
+	while ( $cursor < $length ) {
+		$char = $css[ $cursor ];
+
+		if ( ctype_space( $char ) ) {
+			$cursor++;
+			continue;
+		}
+
+		if ( '/' === $char && $cursor + 1 < $length && '*' === $css[ $cursor + 1 ] ) {
+			$comment_end = strpos( $css, '*/', $cursor + 2 );
+			if ( false === $comment_end ) {
+				return false;
+			}
+
+			$cursor = $comment_end + 2;
+			continue;
+		}
+
+		break;
+	}
+
+	return $cursor;
 }
 
 function page_optimize_get_path( $uri ) {
