@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6.0.2
       - name: Run PHPUnit (Docker)
         run: |
           docker compose up --build --abort-on-container-exit --exit-code-from tests
