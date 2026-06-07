@@ -23,15 +23,15 @@ jobs:
 
     steps:
      - name: Checkout
-       uses: actions/checkout@v3
+       uses: actions/checkout@v6.0.2
 
      - name: Setup Node
-       uses: actions/setup-node@v3
+       uses: actions/setup-node@v6
        with:
           node-version: lts/*
 
      - name: Wait for prior instances of the workflow to finish
-       uses: softprops/turnstyle@8db075d65b19bf94e6e8687b504db69938dc3c65 # v0.1.5
+       uses: softprops/turnstyle@e15e934b3f69ee283ba389ea05c8886baa656d93 # v3.2.4
        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
