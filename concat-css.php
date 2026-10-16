@@ -2,6 +2,7 @@
 
 require_once __DIR__ . '/dependency-path-mapping.php';
 require_once __DIR__ . '/utils.php';
+require_once __DIR__ . '/cache-signature.php';
 
 if ( ! defined( 'ALLOW_GZIP_COMPRESSION' ) ) {
 	define( 'ALLOW_GZIP_COMPRESSION', true );
@@ -302,7 +303,7 @@ class Page_Optimize_CSS_Concat extends WP_Styles {
 					} else {
 						$path_str = implode( ',', $css );
 					}
-					$path_str = "$path_str?m=$mtime";
+					$path_str = page_optimize_sign_path_str( "$path_str?m=$mtime" );
 
 					if ( $this->allow_gzip_compression ) {
 						$path_64 = base64_encode( gzcompress( $path_str ) );

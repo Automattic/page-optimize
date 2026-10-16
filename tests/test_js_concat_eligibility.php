@@ -12,6 +12,31 @@ require_once __DIR__ . '/class-js-concat-test-case.php';
 class Test_JS_Concat_Eligibility extends JS_Concat_Test_Case {
 
 	/**
+	 * Concat URLs carry a signature so the service will cache them, in both the plain and gzip forms.
+	 */
+	public function test_concat_url_is_signed(): void {
+		update_site_option( 'nonce_key', 'po-test-nonce-key' );
+
+		// Long, repetitive file names so the gzip form is shorter and gets used.
+		foreach ( [ false, true ] as $allow_gzip_compression ) {
+			$scripts = $this->new_concat_scripts();
+			$scripts->allow_gzip_compression = $allow_gzip_compression;
+
+			$scripts->add( 'a', $this->make_content_js( 'po-signed-' . str_repeat( 'long-name-', 10 ) . 'a.js' ), [], null, false );
+			$scripts->add( 'b', $this->make_content_js( 'po-signed-' . str_repeat( 'long-name-', 10 ) . 'b.js' ), [], null, false );
+			$scripts->enqueue( 'a' );
+			$scripts->enqueue( 'b' );
+
+			$html = $this->render( $scripts );
+			$this->assertSame( $allow_gzip_compression, false !== strpos( $html, '/_static/??-' ) );
+
+			$path_str = $this->extract_static_path_str( $html );
+			$this->assertMatchesRegularExpression( '/\?m=\d+-[0-9a-f]{20}$/', $path_str );
+			$this->assertTrue( page_optimize_verify_path_str( $path_str ) );
+		}
+	}
+
+	/**
 	 * Verifies the basic success case: two local scripts should be combined
 	 * into a single concatenated <script> tag.
 	 *

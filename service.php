@@ -1,9 +1,15 @@
 <?php
 
+require_once __DIR__ . '/cache-signature.php';
+
 $page_optimize_types = array(
 	'css' => 'text/css',
 	'js' => 'application/javascript'
 );
+
+if ( ! defined( 'PAGE_OPTIMIZE_CONCAT_MAX_BYTES' ) ) {
+	define( 'PAGE_OPTIMIZE_CONCAT_MAX_BYTES', 8 * 1024 * 1024 );
+}
 
 function page_optimize_service_request() {
 	$use_cache = defined( 'PAGE_OPTIMIZE_CACHE_DIR' ) && ! empty( PAGE_OPTIMIZE_CACHE_DIR );
@@ -24,10 +30,19 @@ function page_optimize_service_request() {
 		) );
 	}
 
+	// Only cache path lists this site signed. Key on the decoded list, so equivalent URLs share one entry.
 	if ( $use_cache ) {
-		$request_uri_hash = md5( $_SERVER['REQUEST_URI'] );
-		$cache_file = PAGE_OPTIMIZE_CACHE_DIR . "/page-optimize-cache-$request_uri_hash";
-		$cache_file_meta = PAGE_OPTIMIZE_CACHE_DIR . "/page-optimize-cache-meta-$request_uri_hash";
+		$path_str = page_optimize_get_request_path_str();
+		if ( page_optimize_verify_path_str( $path_str ) ) {
+			$cache_key = md5( page_optimize_get_subdir_path_prefix() . '|' . $path_str );
+		} else {
+			$use_cache = false;
+		}
+	}
+
+	if ( $use_cache ) {
+		$cache_file = PAGE_OPTIMIZE_CACHE_DIR . "/page-optimize-cache-$cache_key";
+		$cache_file_meta = PAGE_OPTIMIZE_CACHE_DIR . "/page-optimize-cache-meta-$cache_key";
 
 		if ( file_exists( $cache_file ) ) {
 			if ( isset( $_SERVER['HTTP_IF_MODIFIED_SINCE'] ) ) {
@@ -78,23 +93,22 @@ function page_optimize_service_request() {
 	die();
 }
 
-function page_optimize_build_output() {
-	global $page_optimize_types;
+/**
+ * Get the decoded path list from the request.
+ *
+ * /_static/??/foo/bar.css,/foo1/bar/baz.css?m=293847g
+ * or
+ * /_static/??-eJzTT8vP109KLNJLLi7W0QdyDEE8IK4CiVjn2hpZGluYmKcDABRMDPM=
+ *
+ * Both return "/foo/bar.css,/foo1/bar/baz.css?m=293847g".
+ */
+function page_optimize_get_request_path_str() {
+	$gzip_max_length = 256 * 1024;
 
-	require_once __DIR__ . '/cssmin/cssmin.php';
-
-	/* Config */
-	$concat_max_files = 300;
-	$concat_unique = true;
-
-	/* Main() */
 	if ( ! in_array( $_SERVER['REQUEST_METHOD'], array( 'GET', 'HEAD' ) ) ) {
 		page_optimize_status_exit( 400 );
 	}
 
-	// /_static/??/foo/bar.css,/foo1/bar/baz.css?m=293847g
-	// or
-	// /_static/??-eJzTT8vP109KLNJLLi7W0QdyDEE8IK4CiVjn2hpZGluYmKcDABRMDPM=
 	$args = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_QUERY );
 	if ( ! $args || false === strpos( $args, '?' ) ) {
 		page_optimize_status_exit( 400 );
@@ -102,17 +116,44 @@ function page_optimize_build_output() {
 
 	$args = substr( $args, strpos( $args, '?' ) + 1 );
 
-	// /foo/bar.css,/foo1/bar/baz.css?m=293847g
-	// or
-	// -eJzTT8vP109KLNJLLi7W0QdyDEE8IK4CiVjn2hpZGluYmKcDABRMDPM=
 	if ( '-' == $args[0] ) {
-		$args = @gzuncompress( base64_decode( substr( $args, 1 ) ) );
+		$args = @gzuncompress( base64_decode( substr( $args, 1 ) ), $gzip_max_length );
 
 		// Invalid data, abort!
 		if ( false === $args ) {
 			page_optimize_status_exit( 400 );
 		}
 	}
+
+	return $args;
+}
+
+/**
+ * If we're in a subdirectory context, use that as the root.
+ * We can't assume that the root serves the same content as the subdir.
+ */
+function page_optimize_get_subdir_path_prefix() {
+	$request_path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
+	$_static_index = strpos( $request_path, '/_static/' );
+	if ( $_static_index > 0 ) {
+		return substr( $request_path, 0, $_static_index );
+	}
+
+	return '';
+}
+
+function page_optimize_build_output() {
+	global $page_optimize_types;
+
+	require_once __DIR__ . '/cssmin/cssmin.php';
+
+	/* Config */
+	$concat_max_files = 300;
+	$concat_max_copies = 2;
+	$concat_unique = true;
+
+	/* Main() */
+	$args = page_optimize_get_request_path_str();
 
 	// /foo/bar.css,/foo1/bar/baz.css?m=293847g
 	$version_string_pos = strpos( $args, '?' );
@@ -121,7 +162,8 @@ function page_optimize_build_output() {
 	}
 
 	// /foo/bar.css,/foo1/bar/baz.css
-	$args = explode( ',', $args );
+	// Split no further than one past the file limit.
+	$args = explode( ',', $args, $concat_max_files + 1 );
 	if ( ! $args ) {
 		page_optimize_status_exit( 400 );
 	}
@@ -131,19 +173,13 @@ function page_optimize_build_output() {
 		page_optimize_status_exit( 400 );
 	}
 
-	// If we're in a subdirectory context, use that as the root.
-	// We can't assume that the root serves the same content as the subdir.
-	$subdir_path_prefix = '';
-	$request_path = parse_url( $_SERVER['REQUEST_URI'], PHP_URL_PATH );
-	$_static_index = strpos( $request_path, '/_static/' );
-	if ( $_static_index > 0 ) {
-		$subdir_path_prefix = substr( $request_path, 0, $_static_index );
-	}
-	unset( $request_path, $_static_index );
+	$subdir_path_prefix = page_optimize_get_subdir_path_prefix();
 
 	$last_modified = 0;
 	$pre_output = '';
 	$output = '';
+	$total_bytes = 0;
+	$file_copies = array();
 
 	$should_minify_css = defined( 'PAGE_OPTIMIZE_CSS_MINIFY' ) && ! empty( PAGE_OPTIMIZE_CSS_MINIFY );
 
@@ -182,13 +218,28 @@ function page_optimize_build_output() {
 			$last_modified = $stat['mtime'];
 		}
 
+		// Count copies per file, not per path string.
+		$file_id = $stat['ino'] ? $stat['dev'] . ':' . $stat['ino'] : realpath( $fullpath );
+		$file_copies[ $file_id ] = isset( $file_copies[ $file_id ] ) ? $file_copies[ $file_id ] + 1 : 1;
+		if ( $file_copies[ $file_id ] > $concat_max_copies ) {
+			page_optimize_status_exit( 400 );
+		}
+
+		// Check the size before reading the file.
+		$file_size = $stat['size'];
+		if ( $file_size > PAGE_OPTIMIZE_CONCAT_MAX_BYTES - $total_bytes ) {
+			page_optimize_status_exit( 400 );
+		}
+		$total_bytes += $file_size;
+
 		$buf = file_get_contents( $fullpath );
 		if ( false === $buf ) {
 			page_optimize_status_exit( 500 );
 		}
 
 		if ( 'text/css' == $mime_type ) {
-			$dirpath = '/' . ltrim( $subdir_path_prefix . dirname( $uri ), '/' );
+			// Normalize repeated slashes in the rewrite prefix.
+			$dirpath = '/' . ltrim( preg_replace( '#/{2,}#', '/', $subdir_path_prefix . dirname( $uri ) ), '/' );
 
 			// url(relative/path/to/file) -> url(/absolute/and/not/relative/path/to/file)
 			$buf = page_optimize_relative_path_replace( $buf, $dirpath );
@@ -227,6 +278,12 @@ function page_optimize_build_output() {
 			if ( $should_minify_css ) {
 				$buf = $css_minify->run( $buf );
 			}
+		}
+
+		// CSS rewriting can grow a file, so also cap the size of the output built so far.
+		$buf_size = strlen( $buf ) + ( $page_optimize_types['js'] === $mime_type ? 2 : 0 );
+		if ( $buf_size > PAGE_OPTIMIZE_CONCAT_MAX_BYTES - strlen( $pre_output ) - strlen( $output ) ) {
+			page_optimize_status_exit( 400 );
 		}
 
 		if ( $page_optimize_types['js'] === $mime_type ) {

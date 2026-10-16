@@ -37,6 +37,12 @@ Page Optimize has CSS Minification capabilities which are off by default.
 
 If you're using caching, and not minifying CSS elsewhere, it is recommended to enable it by setting it to `true`.
 
+= PAGE_OPTIMIZE_CONCAT_MAX_BYTES =
+
+The maximum combined size, in bytes, of the files a single concat request will read, and of the concatenated response it builds. Requests over this limit fail with status 400. The default is `8388608` (8 MiB).
+
+If your site has an unusually large group of scripts or styles, you can raise the limit by defining this constant in `wp-config.php`.
+
 == Testing ==
 
 To test features without enabling them for the entire site, you may append query params to a WordPress post or page URL. For example, to test enabling JavaScript concatenation for `https://example.com/blog/`, you can use the URL `https://example.com/blog/?concat-js=1`.

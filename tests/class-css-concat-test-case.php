@@ -99,6 +99,20 @@ abstract class CSS_Concat_Test_Case extends WP_UnitTestCase {
 	}
 
 	/**
+	 * Returns the decoded path list of the first /_static/ URL in the HTML.
+	 */
+	protected function extract_static_path_str( string $html ): string {
+		$this->assertSame( 1, preg_match( "#/_static/\\?\\?([^']+)'#", $html, $match ), 'Expected a /_static/ URL.' );
+
+		$path_str = $match[1];
+		if ( '-' === $path_str[0] ) {
+			$path_str = gzuncompress( base64_decode( substr( $path_str, 1 ) ) );
+		}
+
+		return $path_str;
+	}
+
+	/**
 	 * Renders all enqueued styles and returns the generated HTML.
 	 */
 	protected function render( WP_Styles $styles ): string {
