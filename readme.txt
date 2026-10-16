@@ -4,7 +4,7 @@ Tags: performance
 Requires at least: 5.3
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.6.3
+Stable tag: 0.6.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -72,6 +72,12 @@ Optional overrides (examples):
 * `PHPUNIT_VERSION=9.6.20 docker compose up --build --abort-on-container-exit --exit-code-from tests`
 
 == Changelog ==
+
+= 0.6.4 =
+* Add `PAGE_OPTIMIZE_CONCAT_MAX_BYTES` to limit the size of concatenated responses (default 8 MiB).
+* Tighten request validation in the concat service.
+* Normalize repeated slashes when rewriting relative CSS URLs.
+* Improve how concatenated responses are cached.
 
 = 0.6.3 = 
  * Update Tested up to version to 7.0
