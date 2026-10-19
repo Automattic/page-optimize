@@ -4,7 +4,7 @@ Tags: performance
 Requires at least: 5.3
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 0.6.3
+Stable tag: 0.6.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -37,6 +37,12 @@ Page Optimize has CSS Minification capabilities which are off by default.
 
 If you're using caching, and not minifying CSS elsewhere, it is recommended to enable it by setting it to `true`.
 
+= PAGE_OPTIMIZE_CONCAT_MAX_BYTES =
+
+The maximum combined size, in bytes, of the files a single concat request will read, and of the concatenated response it builds. Requests over this limit fail with status 400. The default is `8388608` (8 MiB).
+
+If your site has an unusually large group of scripts or styles, you can raise the limit by defining this constant in `wp-config.php`.
+
 == Testing ==
 
 To test features without enabling them for the entire site, you may append query params to a WordPress post or page URL. For example, to test enabling JavaScript concatenation for `https://example.com/blog/`, you can use the URL `https://example.com/blog/?concat-js=1`.
@@ -66,6 +72,12 @@ Optional overrides (examples):
 * `PHPUNIT_VERSION=9.6.20 docker compose up --build --abort-on-container-exit --exit-code-from tests`
 
 == Changelog ==
+
+= 0.6.4 =
+* Add `PAGE_OPTIMIZE_CONCAT_MAX_BYTES` to limit the size of concatenated responses (default 8 MiB).
+* Tighten request validation in the concat service.
+* Normalize repeated slashes when rewriting relative CSS URLs.
+* Improve how concatenated responses are cached.
 
 = 0.6.3 = 
  * Update Tested up to version to 7.0

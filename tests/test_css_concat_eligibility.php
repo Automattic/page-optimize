@@ -33,6 +33,31 @@ class Test_CSS_Concat_Eligibility extends CSS_Concat_Test_Case {
 	}
 
 	/**
+	* Concat URLs carry a signature so the service will cache them, in both the plain and gzip forms.
+	*/
+	public function test_concat_url_is_signed(): void {
+		update_site_option( 'nonce_key', 'po-test-nonce-key' );
+
+		// Long, repetitive file names so the gzip form is shorter and gets used.
+		foreach ( [ false, true ] as $allow_gzip_compression ) {
+			$styles = $this->new_concat_styles();
+			$styles->allow_gzip_compression = $allow_gzip_compression;
+
+			$styles->add( 'a', $this->make_content_css( 'po-signed-' . str_repeat( 'long-name-', 10 ) . 'a.css' ), [], null, 'all' );
+			$styles->add( 'b', $this->make_content_css( 'po-signed-' . str_repeat( 'long-name-', 10 ) . 'b.css' ), [], null, 'all' );
+			$styles->enqueue( 'a' );
+			$styles->enqueue( 'b' );
+
+			$html = $this->render( $styles );
+			$this->assertSame( $allow_gzip_compression, false !== strpos( $html, '/_static/??-' ) );
+
+			$path_str = $this->extract_static_path_str( $html );
+			$this->assertMatchesRegularExpression( '/\?m=\d+-[0-9a-f]{20}$/', $path_str );
+			$this->assertTrue( page_optimize_verify_path_str( $path_str ) );
+		}
+	}
+
+	/**
 	* When there's only one stylesheet, don't use the combo endpoint - just serve it
 	* directly with a cache-busting timestamp (?m=...).
 	*
